@@ -1,0 +1,7 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd" layout="1column">
+    <body>
+        <referenceContainer name="header-wrapper">
+            <block class="Nextorder\Menue\Block\Frontend\Menue" name="Menue" template="menu_button.phtml" />
+        </referenceContainer>
+    </body>
+</page>
