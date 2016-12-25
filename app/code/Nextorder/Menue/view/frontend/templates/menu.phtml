@@ -8,35 +8,17 @@
     </select></div>
 
 <div id="product_diy_container">
-    <table>
-        <tr day_index="1">
-            <td></td>
-            <td><button>Austausch</button></td>
-        </tr>
-        <tr day_index="2">
-            <td></td>
-            <td><button>Austausch</button></td>
-        </tr>
-        <tr day_index="3">
-            <td></td>
-            <td><button>Austausch</button></td>
-        </tr>
-        <tr day_index="4">
-            <td></td>
-            <td><button>Austausch</button></td>
-        </tr>
-        <tr day_index="5">
-            <td></td>
-            <td><button>Austausch</button></td>
-        </tr>
+    <table border="1">
+        <?php echo $this->loadProductHtmlBySku(); ?>
     </table>
 </div>
-
 <script type="text/javascript">
 // func for loading js container
 require(['jquery', 'jquery/ui'], function($){
     jQuery(document).ready(function () {
-        alert(jQuery("#product_option select option:selected").val());
+//        alert(jQuery("#product_option select option:selected").val());
     });
 });
 </script>
+
+
