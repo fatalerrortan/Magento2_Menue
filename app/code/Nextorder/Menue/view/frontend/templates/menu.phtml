@@ -13,10 +13,50 @@
     </table>
 </div>
 <script type="text/javascript">
+    var order_container = {"amount":5, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":"",};
+    var base_url = "<?php echo $this->getUrl(); ?>";
 // func for loading js container
 require(['jquery', 'jquery/ui'], function($){
     jQuery(document).ready(function () {
 //        alert(jQuery("#product_option select option:selected").val());
+        jQuery("#product_diy_container table tr").each(function () {
+            var index = jQuery(this).attr('index');
+            order_container["var_"+index] = jQuery(this).attr("sku");
+        });
+//        console.log(order_container);
+    });
+    /*
+    Add iframe to choose target product
+     */
+    jQuery(".diy_button").click(function () {
+        if(jQuery(this).hasClass('active')){
+            jQuery(this).parent().find("div.iframe_container iframe").slideToggle();
+            return false;
+        }
+        var price_class = jQuery(this).attr('price_class');
+        var iframe = "<iframe class='variant_box' src='"+base_url+"menue/index/variant?class="+price_class+"'" +
+                        "width='900px' height='450px' style='display: none' />";
+        jQuery(this).parent().find("div.iframe_container").append(iframe);
+        jQuery(this).addClass('active');
+        jQuery(this).parent().find("div.iframe_container iframe").slideToggle();
+    });
+    /*
+    load html wrapper(Product Block) with customer option
+     */
+    jQuery("#product_option select").change(function () {
+        var selected = jQuery(this).find("option:selected").val();
+        if(selected == '5'){jQuery("#product_diy_container table tr").show();}
+        if(selected == '4'){
+            jQuery("#product_diy_container table tr[index='5']").hide();
+            order_container["var_5"] = "";
+            console.log(order_container);
+        }
+        if(selected == 3){
+            jQuery("#product_diy_container table tr[index='4'], #product_diy_container table tr[index='5']").hide();
+            order_container["var_4"] = "";
+            order_container["var_5"] = "";
+            console.log(order_container);
+        }
     });
 });
 </script>

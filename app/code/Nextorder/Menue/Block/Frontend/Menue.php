@@ -27,6 +27,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
 
         $products = $this->_helper->getAdminConfig();
         $html = '';
+        $index = 1;
         foreach ($products as $item) {
             $product = $this->_productCollection->loadByAttribute('sku', $item);
 //            $this->_logger->addDebug($this->getUrl('pub/media/catalog').'product'.$product->getImage());
@@ -35,16 +36,17 @@ class Menue extends \Magento\Framework\View\Element\Template{
             $imgUrl = $this->getUrl('pub/media/catalog').'product'.$product->getImage();
             $productShortDescription = $product->getShortDescription();
             $priceClass = $product->getData('price_class');
-            $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl);
+            $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index);
+            $index++;
         }
         return $html;
     }
     /*
      * load html wrapper for each product
      */
-    public function getHtml($name, $price, $priceClass, $description, $imgUrl){
+    public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index){
 
-        $html = "<tr>
+        $html = "<tr sku='".$sku."' id='price_class_".$priceClass."' index=".$index.">
                 <td class='img_container'>
                     <img src='".$imgUrl."' scrset='".$imgUrl."' alt='".$name."' width='200px' height='200px' />
                     <h5>".$name."</h5>
@@ -53,8 +55,9 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     <div class='product_content'>
                         <span>".$description."</span>
                     </div>
-                    <div class='diy_button'>
-                        <button price_class='".$priceClass."'>Austausch</button>
+                    <div>
+                        <button class='diy_button' price_class='".$priceClass."'>Austausch</button>
+                        <div class='iframe_container'></div>
                     </div>
                  </td>
                  <td class='product_price'>

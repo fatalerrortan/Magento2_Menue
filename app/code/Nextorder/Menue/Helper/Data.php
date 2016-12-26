@@ -15,8 +15,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             2 => 'test_sku_02',
             3 => 'test_sku_03',
             4 => 'test_sku_04',
-            5 => 'test_sku_05',
-            6 => 'test_sku_06'
+            5 => 'test_sku_05'
         );
     }
 }
