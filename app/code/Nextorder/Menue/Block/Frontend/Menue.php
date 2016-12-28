@@ -11,7 +11,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
         \Magento\Framework\View\Element\Template\Context $context, //parent block injection
         \Nextorder\Menue\Helper\Data $helper, //helper injection
         \Psr\Log\LoggerInterface $logger, //log injection
-        \Magento\Catalog\Model\ProductFactory $productCollection, //product collection injection
+        \Magento\Catalog\Model\ProductFactory $productCollection, //product Factory injection
         array $data = []
     )
     {
@@ -46,7 +46,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
      */
     public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index){
 
-        $html = "<tr sku='".$sku."' id='price_class_".$priceClass."' index=".$index.">
+        $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index.">
                 <td class='img_container'>
                     <img src='".$imgUrl."' scrset='".$imgUrl."' alt='".$name."' width='200px' height='200px' />
                     <h5>".$name."</h5>
@@ -56,7 +56,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                         <span>".$description."</span>
                     </div>
                     <div>
-                        <button class='diy_button' price_class='".$priceClass."'>Austausch</button>
+                        <button class='diy_button' index='".$index."' price_class='".$priceClass."'>Austausch</button>
                         <div class='iframe_container'></div>
                     </div>
                  </td>

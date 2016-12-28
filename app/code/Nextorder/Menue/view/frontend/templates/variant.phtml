@@ -1,4 +1,22 @@
-<h1>VARIANT!!!</h1>
-<?php
-    echo $this->fottest();
-?>
+<?php ?>
+<div id="var_container">
+    <table border="1">
+        <?php echo $this->getProductHtmlByPriceClass($_GET['class']); ?>
+    </table>
+</div>
+<script type="text/javascript">
+    require(['jquery', 'jquery/ui'], function($){
+        var position = '<?php echo $_GET['index'] ?>';
+        jQuery(document).ready(function () {
+
+        });
+        jQuery("button.choose_variant").click(function () {
+            var sku = jQuery(this).attr('target_sku');
+            var name = jQuery("#"+sku+" td.name h5").html();
+            var description = jQuery("#"+sku+" td.description span").html();
+            var img = jQuery("#"+sku+" td.name img").attr('src');
+            var price = jQuery("#"+sku+" td.price > div > span").html();
+            parent.load_new_var_product(sku, name, description, price, img, position);
+        });
+    });
+</script>
