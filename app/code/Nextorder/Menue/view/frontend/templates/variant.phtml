@@ -7,9 +7,7 @@
 <script type="text/javascript">
     require(['jquery', 'jquery/ui'], function($){
         var position = '<?php echo $_GET['index'] ?>';
-        jQuery(document).ready(function () {
-
-        });
+        jQuery(document).ready(function () {});
         jQuery("button.choose_variant").click(function () {
             var sku = jQuery(this).attr('target_sku');
             var name = jQuery("#"+sku+" td.name h5").html();
