@@ -22,10 +22,17 @@ class Cart extends \Magento\Framework\App\Action\Action
     }
 
     public function execute(){
-        $resultRedirect = $this->resultRedirectFactory->create();
-        $this->addProductsInCart();
+//        $resultRedirect = $this->resultRedirectFactory->create();
+//        $this->addProductsInCart();
         // refresh mini cart
-       return $resultRedirect->setPath('checkout/cart/index');
+//       return $resultRedirect->setPath('checkout/cart/index');
+
+        $this->getOptionId();
+
+
+
+        $resultPage = $this->_resultPageFactory->create();
+        return $resultPage;
     }
 
     protected function addProductsInCart(){
@@ -33,11 +40,12 @@ class Cart extends \Magento\Framework\App\Action\Action
             'product' => 7,
             'related_product' => null,
             'bundle_option' => [
-                1 => "19",
-                2 => "20",
+//                1 => "19",
+//                2 => "20",
                 3 => "21",
                 4 => "22",
-                5 => "23"
+                5 => "23",
+//                6 => "24",
             ],
 //            'options' => [
 //                5 => 'Some Test value to a text field',
