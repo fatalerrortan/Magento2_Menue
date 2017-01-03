@@ -51,7 +51,7 @@ class Variant extends \Magento\Framework\View\Element\Template
                         <td class='description'><span>".$product->getShortDescription()."</span></td>
                         <td class='price'>
                             <div><span>".$product->getPrice()."&euro;</span></div>
-                            <div><button class='choose_variant' target_sku='".$product->getSku()."'>Auswählen</button></div>
+                            <div><button class='choose_variant action primary' target_sku='".$product->getSku()."'>Auswählen</button></div>
                         </td>
                      </tr>";
         return $html;

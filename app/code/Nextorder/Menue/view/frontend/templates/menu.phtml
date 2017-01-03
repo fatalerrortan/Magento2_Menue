@@ -11,6 +11,7 @@
     <table border="1">
         <?php echo $this->loadProductHtmlBySku(); ?>
     </table>
+    <hr /><center><button id="to_cart" class="action primary">In Warenkorb</button></center>
 </div>
 <script type="text/javascript">
     var order_container = {"amount":5, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":"",};
@@ -23,7 +24,7 @@ require(['jquery', 'jquery/ui'], function($) {
             var index = jQuery(this).attr('index');
             order_container["var_" + index] = jQuery(this).attr("sku");
         });
-//        console.log(order_container);
+        console.log(order_container);
     });
     /*
      Add iframe to choose target product
@@ -48,16 +49,21 @@ require(['jquery', 'jquery/ui'], function($) {
         var selected = jQuery(this).find("option:selected").val();
         if (selected == '5') {
             jQuery("#product_diy_container table tr").show();
+            order_container.amount = 5;
+            console.log(order_container);
         }
         if (selected == '4') {
             jQuery("#product_diy_container table tr[index='5']").hide();
-            order_container["var_5"] = "";
+            jQuery("#product_diy_container table tr[index='4']").show();
+            order_container.var_5 = "";
+            order_container.amount = 4;
             console.log(order_container);
         }
-        if (selected == 3) {
+        if (selected == '3') {
             jQuery("#product_diy_container table tr[index='4'], #product_diy_container table tr[index='5']").hide();
-            order_container["var_4"] = "";
-            order_container["var_5"] = "";
+            order_container.var_4 = "";
+            order_container.var_5 = "";
+            order_container.amount = 3;
             console.log(order_container);
         }
     });
@@ -67,9 +73,37 @@ require(['jquery', 'jquery/ui'], function($) {
     jQuery("tr[class*='price_class_']").attrchange({
         trackValues: true,
         callback: function (event) {
-           var index = jQuery(this).attr('index');
+            var index = jQuery(this).attr('index');
+            if(parseInt(index) > order_container.amount){
+                return false;
+            }
             order_container["var_" + index] = jQuery(this).attr("sku");
         }
+    });
+    /*
+    read ordered products in order_container json and set in cart
+     */
+    jQuery("#to_cart").click(function () {
+        var data_to_post = "";
+        jQuery.each(order_container, function (key, value) {
+            if((key == "amount") || (value == "")){return;}
+            data_to_post = data_to_post + value + ",";
+        });
+        var postData = new FormData();
+        postData.append("menu_orders", data_to_post);
+        jQuery.ajax({
+            type: "POST",
+            url: base_url+"menue/index/cart",
+            data: postData,
+            contentType: false,
+            processData: false,
+            dataType: "text",
+            success: function(data){
+                if (confirm("Ihr Wochenmenu ist bereits auf Warenkorb gelegt. Wollen Sie auf Warenkorb gehen?")) {
+                    window.location = base_url+"checkout/cart/";
+                }
+            }
+        });
     });
 });
     /*

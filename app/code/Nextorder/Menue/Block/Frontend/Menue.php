@@ -56,7 +56,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                         <span>".$description."</span>
                     </div>
                     <div>
-                        <button class='diy_button' index='".$index."' price_class='".$priceClass."'>Austausch</button>
+                        <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."'>Austausch</button>
                         <div class='iframe_container'></div>
                     </div>
                  </td>
