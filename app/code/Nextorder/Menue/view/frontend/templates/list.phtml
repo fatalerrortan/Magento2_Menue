@@ -8,7 +8,7 @@ use Magento\Framework\App\Action\Action;
 // @codingStandardsIgnoreFile
 
 ?>
-<div id="product_list">
+<div class="product_list" style="display: none">
 <?php
 /**
  * Product list template
@@ -18,7 +18,6 @@ use Magento\Framework\App\Action\Action;
 ?>
 <?php
 $_productCollection = $block->getCustomCollection();
-echo "!!!".$block->_price_class;
 $_helper = $this->helper('Magento\Catalog\Helper\Output');
 ?>
 <?php if (!$_productCollection->count()): ?>
@@ -81,14 +80,15 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                                 <div class="actions-primary"<?php echo strpos($pos, $viewMode . '-primary') ? $position : ''; ?>>
                                     <?php if ($_product->isSaleable()): ?>
                                         <?php $postParams = $block->getAddToCartPostParams($_product); ?>
-                                        <form data-role="tocart-form" action="<?php /* @escapeNotVerified */ echo $postParams['action']; ?>" method="post">
-                                            <input type="hidden" name="product" value="<?php /* @escapeNotVerified */ echo $postParams['data']['product']; ?>">
-                                            <input type="hidden" name="<?php /* @escapeNotVerified */ echo Action::PARAM_NAME_URL_ENCODED; ?>" value="<?php /* @escapeNotVerified */ echo $postParams['data'][Action::PARAM_NAME_URL_ENCODED]; ?>">
-                                            <?php echo $block->getBlockHtml('formkey')?>
-                                            <button type="submit"
-                                                    title="<?php echo $block->escapeHtml(__('Auswahlen')); ?>"
-                                                    class="action tocart primary">
+                                        <form data-role="tocart-form">
+                                            <button class="action primary choose_variant">
                                                 <span><?php /* @escapeNotVerified */ echo __('Auswahlen') ?></span>
+                                                <input type="hidden" class="sku" value="<?php echo $_product->getSku() ?>" />
+                                                <input type="hidden" class="name" value="<?php echo $_product->getName() ?>" />
+                                                <input type="hidden" class="description" value="<?php echo str_replace('"','',strip_tags($_product->getShortDescription())) ?>" />
+                                                <input type="hidden" class="img" value="<?php echo $this->getUrl('pub/media/catalog')."product".$_product->getImage() ?>" />
+                                                <input type="hidden" class="price" value="<?php echo $_product->getPrice() ?>" />
+                                                <input type="hidden" class="menu_index" value="<?php echo $this->_menu_index ?>" />
                                             </button>
                                         </form>
                                     <?php else: ?>
@@ -133,3 +133,5 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
     <?php endif; ?>
 <?php endif; ?>
 </div>
+</div>
+

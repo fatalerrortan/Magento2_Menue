@@ -1,3 +1,10 @@
+<?php
+//    if(empty($this->getCatalogSession()->getUserOptionContainer())){
+//        echo "no session";
+//    }else{
+//        echo $this->getCatalogSession()->getUserOptionContainer();
+//    }
+?>
 <h1>Auswählen Sie Speisen für 3, 4 oder 5 Tagen</h1>
 <div id="product_option">
     <span>Bestimmten die Anzahl von Produkten</span>
@@ -20,28 +27,29 @@
 // func for loading js container
 require(['jquery', 'jquery/ui'], function($) {
     jQuery(document).ready(function () {
-//        alert(jQuery("#product_option select option:selected").val());
-        jQuery("#product_diy_container table tr").each(function () {
-            var index = jQuery(this).attr('index');
-            order_container["var_" + index] = jQuery(this).attr("sku");
-        });
+//        var session = "<?php //echo $this->_customerSession; ?>//";
+//        if(session.length == 0) {
+            jQuery("#product_diy_container table tr").each(function () {
+                var index = jQuery(this).attr('index');
+                order_container["var_" + index] = jQuery(this).attr("sku");
+            });
         console.log(order_container);
     });
     /*
      Add iframe to choose target product
      */
     jQuery(".diy_button").click(function () {
-        if (jQuery(this).hasClass('active')) {
-            jQuery(this).parent().find("div.iframe_container iframe").slideToggle();
-            return false;
-        }
-        var price_class = jQuery(this).attr('price_class');
-        var index = jQuery(this).attr('index');
-        var iframe = "<iframe class='variant_box' src='" + base_url + "menue/index/variant?class=" + price_class + "&index=" + index + "'" +
-            "width='900px' height='450px' style='display: none' />";
-        jQuery(this).parent().find("div.iframe_container").append(iframe);
-        jQuery(this).addClass('active');
-        jQuery(this).parent().find("div.iframe_container iframe").slideToggle();
+//        if (jQuery(this).hasClass('active')) {
+//            jQuery(this).parent().find("div.list_container div.product_list").slideToggle();
+//            return false;
+//        }
+//        var price_class = jQuery(this).attr('price_class');
+//        var index = jQuery(this).attr('index');
+//        var iframe = "<iframe class='variant_box' src='" + base_url + "menue/index/variant?class=" + price_class + "&index=" + index + "'" +
+//            "width='900px' height='450px' style='display: none' />";
+//        jQuery(this).parent().find("div.iframe_container").append(iframe);
+//        jQuery(this).addClass('active');
+        jQuery(this).parent().find("div.list_container div.product_list").slideToggle();
     });
     /*
      load html wrapper(Product Block) with customer option
@@ -79,6 +87,7 @@ require(['jquery', 'jquery/ui'], function($) {
                 return false;
             }
             order_container["var_" + index] = jQuery(this).attr("sku");
+            console.log(order_container);
         }
     });
     /*
@@ -106,9 +115,43 @@ require(['jquery', 'jquery/ui'], function($) {
             }
         });
     });
+    /*
+     get params from user choosed to load new product in menu
+     */
+    jQuery("button.choose_variant").click(function () {
+        var sku = jQuery(this).find("input.sku").val();
+        var name = jQuery(this).find("input.name").val()
+        var description = jQuery(this).find("input.description").val();
+        var img = jQuery(this).find("input.img").val();
+        var price = jQuery(this).find("input.price").val();
+        var position = jQuery(this).find("input.menu_index").val();
+        load_new_var_product(sku, name, description, price, img, position);
+    });
+    /*
+    save tmp user choose in Session
+     */
+    jQuery(window).bind('beforeunload',function(){
+
+        var data_to_post = "";
+        jQuery.each(order_container, function (key, value) {
+            if((key == "amount") || (value == "")){return;}
+            data_to_post = data_to_post + value + ",";
+        });
+        var postData = new FormData();
+        postData.append("user_choose", data_to_post);
+        jQuery.ajax({
+            type: "POST",
+            url: base_url+"menue/index/Session",
+            data: postData,
+            contentType: false,
+            processData: false,
+            dataType: "text",
+            success: function(data){alert(data);}
+        });
+    });
 });
     /*
-    get params from iframe to load new product in menu
+     load new product in menu block
      */
     function load_new_var_product(sku, name, description, price, img, position) {
         require(['jquery', 'jquery/ui'], function($){

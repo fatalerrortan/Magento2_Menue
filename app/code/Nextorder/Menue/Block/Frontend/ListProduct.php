@@ -6,6 +6,7 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     protected $_customProductCollection;
     protected $_productFactory;
     public $_price_class;
+    public $_menu_index;
     protected $_logger;
 
     public function __construct(
@@ -38,11 +39,16 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
         return $this->_price_class = $price_class;
     }
     /*
+     * set menu index to locate changed menu
+     */
+    public function setMenuIndex($menu_index){
+        return$this->_menu_index = $menu_index;
+    }
+    /*
     * get custom product collection
     */
     public function getCustomCollection(){
         $productCollection = $this->_customProductCollection->create()->addAttributeToFilter('price_class',$this->_price_class);
-        $this->_logger->addDebug("!!TEST!!!!!!".$this->_price_class);
         return $productCollection;
     }
     /*

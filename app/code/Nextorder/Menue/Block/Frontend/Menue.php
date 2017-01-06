@@ -6,18 +6,23 @@ class Menue extends \Magento\Framework\View\Element\Template{
     protected $_logger;
     public $_helper;
     protected $_productCollection;
+    protected $_customerSession;
+//    public $_session_customer;
 
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context, //parent block injection
         \Nextorder\Menue\Helper\Data $helper, //helper injection
         \Psr\Log\LoggerInterface $logger, //log injection
         \Magento\Catalog\Model\ProductFactory $productCollection, //product Factory injection
+//        \Magento\Framework\Session\SessionManagerInterface $customerSession,
         array $data = []
     )
     {
         $this->_helper = $helper;
         $this->_logger = $logger;
         $this->_productCollection = $productCollection->create();
+//        $this->_customerSession = $customerSession;
+        $this->_session_customer = $this->getSession();
         parent::__construct($context, $data);
     }
     /*
@@ -25,7 +30,18 @@ class Menue extends \Magento\Framework\View\Element\Template{
      */
     public function loadProductHtmlBySku(){
 
-        $products = $this->_helper->getAdminConfig();
+        $sessionProducts = $this->_session_customer;
+        if(empty($sessionProducts)){
+            $products = $this->_helper->getAdminConfig();
+        }else{
+            foreach ($this->_helper->getAdminConfig() as $key => $value){
+                if(empty($sessionProducts[$key])){
+                    $sessionProducts[$key] = $value;
+                }
+            }
+            $products = $sessionProducts;
+        }
+
         $html = '';
         $index = 1;
         foreach ($products as $item) {
@@ -46,6 +62,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
      */
     public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index){
         $this->getChildBlock("ListProduct")->setPriceClass($priceClass);
+        $this->getChildBlock("ListProduct")->setMenuIndex($index);
         $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index.">
                 <td class='img_container'>
                     <img src='".$imgUrl."' scrset='".$imgUrl."' alt='".$name."' width='200px' height='200px' />
@@ -57,7 +74,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     </div>
                     <div>
                         <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."'>Austausch</button>
-                        <div class='iframe_container'>
+                        <div class='list_container'>
                         ".$this->getChildHtml('ListProduct',false)."
                         </div>
                     </div>
@@ -67,5 +84,22 @@ class Menue extends \Magento\Framework\View\Element\Template{
                  </td>   
                </tr>";
         return $html;
+    }
+    /*
+     * check status of session
+     */
+    public function getSession(){
+        if(isset($_SESSION['user_choose'])){
+            return array_filter(explode(",", $_SESSION['user_choose']));
+        }
+    }
+    /*
+     *  convert session params to json
+     */
+    public function getSessionParam(){
+
+        foreach ($this->_session_customer as $session){
+
+        }
     }
 }
