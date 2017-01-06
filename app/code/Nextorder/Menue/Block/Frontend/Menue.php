@@ -45,7 +45,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * load html wrapper for each product
      */
     public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index){
-
+        $this->getChildBlock("ListProduct")->setPriceClass($priceClass);
         $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index.">
                 <td class='img_container'>
                     <img src='".$imgUrl."' scrset='".$imgUrl."' alt='".$name."' width='200px' height='200px' />
@@ -57,7 +57,9 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     </div>
                     <div>
                         <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."'>Austausch</button>
-                        <div class='iframe_container'></div>
+                        <div class='iframe_container'>
+                        ".$this->getChildHtml('ListProduct',false)."
+                        </div>
                     </div>
                  </td>
                  <td class='product_price'>

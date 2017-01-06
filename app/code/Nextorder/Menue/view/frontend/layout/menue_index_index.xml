@@ -5,7 +5,9 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="Nextorder\Menue\Block\Frontend\Menue" name="Menue" template="menu.phtml" />
+            <block class="Nextorder\Menue\Block\Frontend\Menue" name="Menue" template="menu.phtml">
+                <block class="Nextorder\Menue\Block\Frontend\ListProduct" name="ListProduct" template="list.phtml" />
+            </block>
         </referenceContainer>
     </body>
 </page>
