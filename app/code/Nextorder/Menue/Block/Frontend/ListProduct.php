@@ -48,7 +48,10 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     * get custom product collection
     */
     public function getCustomCollection(){
-        $productCollection = $this->_customProductCollection->create()->addAttributeToFilter('price_class',$this->_price_class);
+        $this->_logger->addDebug(print_r($this->getIdAndOptionSkus('inc','optionSkus.txt'),true));
+        $productCollection = $this->_customProductCollection->create()
+            ->addAttributeToFilter('sku',array('in' => $this->getIdAndOptionSkus('inc','optionSkus.txt')))
+            ->addAttributeToFilter('price_class',$this->_price_class);
         return $productCollection;
     }
     /*
@@ -56,5 +59,22 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     */
     public function getCustomSingleProduct($sku){
      return  $this->_productFactory->loadByAttribute('sku', $sku);
+    }
+    /*
+  * get related Id and Option id according to sku
+  */
+    public function getIdAndOptionSkus($dir, $file){
+        $serializedArray = file_get_contents($this->df_module_dir("Nextorder_Menue")."/".$dir."/".$file);
+        return unserialize($serializedArray);
+    }
+    /*
+    * get module dir to save serialized array of option ids
+    */
+    public  function df_module_dir($moduleName, $type = '') {
+        /** @var \Magento\Framework\ObjectManagerInterface $om */
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        /** @var \Magento\Framework\Module\Dir\Reader $reader */
+        $reader = $om->get('Magento\Framework\Module\Dir\Reader');
+        return $reader->getModuleDir($type, $moduleName);
     }
 }

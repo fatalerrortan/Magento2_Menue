@@ -1,10 +1,4 @@
-<?php
-//    if(empty($this->getCatalogSession()->getUserOptionContainer())){
-//        echo "no session";
-//    }else{
-//        echo $this->getCatalogSession()->getUserOptionContainer();
-//    }
-?>
+<?php ?>
 <h1>Auswählen Sie Speisen für 3, 4 oder 5 Tagen</h1>
 <div id="product_option">
     <span>Bestimmten die Anzahl von Produkten</span>
@@ -22,7 +16,7 @@
     <hr /><center><button id="to_cart" class="action primary">In Warenkorb</button></center>
 </div>
 <script type="text/javascript">
-    var order_container = {"amount":5, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":"",};
+    var order_container = {"amount":5, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":""};
     var base_url = "<?php echo $this->getUrl(); ?>";
 // func for loading js container
 require(['jquery', 'jquery/ui'], function($) {
@@ -146,7 +140,7 @@ require(['jquery', 'jquery/ui'], function($) {
             contentType: false,
             processData: false,
             dataType: "text",
-            success: function(data){alert(data);}
+            success: function(data){}
         });
     });
 });

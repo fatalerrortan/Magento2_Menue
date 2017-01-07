@@ -1,0 +1,1 @@
+a:7:{i:0;s:11:"test_sku_01";i:1;s:11:"test_sku_02";i:2;s:11:"test_sku_03";i:3;s:11:"test_sku_04";i:4;s:11:"test_sku_05";i:5;s:11:"test_sku_06";i:6;s:11:"test_sku_07";}

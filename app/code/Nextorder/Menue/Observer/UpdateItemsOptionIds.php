@@ -8,6 +8,8 @@ class UpdateItemsOptionIds implements ObserverInterface{
 
     protected $_logger;
     protected $_selectionIds;
+    protected $_selectionSkus;
+
 
     public function __construct(
         \Psr\Log\LoggerInterface $logger
@@ -21,6 +23,7 @@ class UpdateItemsOptionIds implements ObserverInterface{
     public function execute(\Magento\Framework\Event\Observer $observer){
 
         $selectionIds = array();
+        $selectionSkus = array();
         $product = $observer->getProduct();
         if($product->getSku() != "test_bundle"){return true;}
         $selectionCollection = $product->getTypeInstance(true)
@@ -34,13 +37,15 @@ class UpdateItemsOptionIds implements ObserverInterface{
                 "option_id" => $proselection->getSelectionId()
             );
             $selectionIds[$proselection->getSku()] = $item;
+            $selectionSkus[] = $proselection->getSku();
         }
         $selectionIds[$product->getSku()] = array(
             "product_id" => $product->getId(),
             "option_id" => ""
         );
         $this->_selectionIds = $selectionIds;
-        if($this->save('inc','optionIds.txt')){return true;}
+        $this->_selectionSkus = $selectionSkus;
+        if($this->save('inc','optionIds.txt') && $this->save('inc','optionSkus.txt', true)){return true;}
 //        $this->_logger->addDebug($this->df_module_dir("Nextorder_Menue"));
     }
     /*
@@ -56,12 +61,13 @@ class UpdateItemsOptionIds implements ObserverInterface{
     /*
      * check and generate Order "inc" to set serialized array of option ids
      */
-    public function save($dir, $file){
+    public function save($dir, $file, $flag = false){
         $moduleDir = $this->df_module_dir("Nextorder_Menue")."/".$dir;
         if(!is_dir($moduleDir)){
            mkdir($moduleDir,0777);
        }
-        file_put_contents($moduleDir."/".$file, serialize($this->_selectionIds));
+        if($flag == true){file_put_contents($moduleDir."/".$file, serialize($this->_selectionSkus));}
+        else{file_put_contents($moduleDir."/".$file, serialize($this->_selectionIds));}
         return true;
     }
 }
