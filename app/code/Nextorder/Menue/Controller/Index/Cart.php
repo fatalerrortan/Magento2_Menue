@@ -53,19 +53,16 @@ class Cart extends \Magento\Framework\App\Action\Action{
             'bundle_option' => $orderedChildrenProducts,
             'qty' => 1
         ];
-        // new
         if (isset($params['qty'])) {
             $filter = new \Zend_Filter_LocalizedToNormalized(
                 ['locale' => $this->_objectManager->get('Magento\Framework\Locale\ResolverInterface')->getLocale()]
             );
         }
             $params['qty'] = $filter->filter($params['qty']);
-        // new
         $storeId = $this->_objectManager->get('Magento\Store\Model\StoreManagerInterface')->getStore()->getId();
         $product = $this->_productRepository->getById($this->_idsAndOptionIds['__children__']['test_bundle']['product_id'], false, $storeId);
         $this->_cart->addProduct($product,$params);
         $this->_cart->save();
-        // new
         $this->_eventManager->dispatch(
             'checkout_cart_add_product_complete',
             ['product' => $product, 'request' => $this->getRequest(), 'response' => $this->getResponse()]
@@ -78,9 +75,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
                 );
                 $this->messageManager->addSuccessMessage($message);
             }
-//            return $this->goBack(null, $product);
         }
-        // new
         return true;
     }
     /*
