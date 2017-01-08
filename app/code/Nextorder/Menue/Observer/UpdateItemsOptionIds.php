@@ -31,22 +31,23 @@ class UpdateItemsOptionIds implements ObserverInterface{
                 $product->getTypeInstance(true)->getOptionsIds($product),
                 $product
             );
+        $selectionIds['__main__'] = $product->getTypeInstance(true)->getOptionsIds($product);
         foreach ($selectionCollection as $proselection) {
             $item = array(
                 "product_id" => $proselection->getProductId(),
                 "option_id" => $proselection->getSelectionId()
             );
-            $selectionIds[$proselection->getSku()] = $item;
+            $selectionIds['__children__'][$proselection->getSku()] = $item;
             $selectionSkus[] = $proselection->getSku();
         }
-        $selectionIds[$product->getSku()] = array(
+        $selectionIds['__children__'][$product->getSku()] = array(
             "product_id" => $product->getId(),
             "option_id" => ""
         );
         $this->_selectionIds = $selectionIds;
         $this->_selectionSkus = $selectionSkus;
+//        $this->_logger->addDebug(print_r($this->_selectionIds, true));
         if($this->save('inc','optionIds.txt') && $this->save('inc','optionSkus.txt', true)){return true;}
-//        $this->_logger->addDebug($this->df_module_dir("Nextorder_Menue"));
     }
     /*
      * get module dir to save serialized array of option ids

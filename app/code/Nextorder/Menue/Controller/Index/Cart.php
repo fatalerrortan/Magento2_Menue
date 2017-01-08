@@ -10,13 +10,17 @@ class Cart extends \Magento\Framework\App\Action\Action{
     protected $_productRepository;
 //    protected $_resultJsonFactory;
     protected $_idsAndOptionIds;
+    protected $_checkoutSession;
 
     public function __construct(
                                 Context $context,
                                 \Magento\Checkout\Model\Cart $cart,
+                                \Magento\Checkout\Model\Session $checkoutSession,
+//                                \Magento\Checkout\Model\Session\Interceptor $interceptor,
                                 \Magento\Catalog\Model\ProductRepository $productRepository
                         ){
         $this->_cart = $cart;
+        $this->_checkoutSession = $checkoutSession;
         $this->_productRepository = $productRepository;
         $this->_idsAndOptionIds = $this->getIdAndOptionId('inc','optionIds.txt');
         parent::__construct($context);
@@ -38,17 +42,45 @@ class Cart extends \Magento\Framework\App\Action\Action{
         $orderedChildrenProducts = array();
         foreach ($skus as $sku){
             if(empty($sku)){continue;}
-            $orderedChildrenProducts[$this->_idsAndOptionIds[$sku]['product_id']] = $this->_idsAndOptionIds[$sku]["option_id"];
+            $orderedChildrenProducts[$this->_idsAndOptionIds['__main__'][0]][$this->_idsAndOptionIds['__children__'][$sku]['product_id']] = $this->_idsAndOptionIds['__children__'][$sku]["option_id"];
         }
         $params = [
-            'product' => $this->_idsAndOptionIds['test_bundle']['product_id'],
+            'uenc' => null,
+            'product' => $this->_idsAndOptionIds['__children__']['test_bundle']['product_id'],
+            'selected_configurable_option' => null,
             'related_product' => null,
+            'form_key' => null,
             'bundle_option' => $orderedChildrenProducts,
             'qty' => 1
         ];
-        $product = $this->_productRepository->getById($this->_idsAndOptionIds['test_bundle']['product_id']);
+        // new
+        if (isset($params['qty'])) {
+            $filter = new \Zend_Filter_LocalizedToNormalized(
+                ['locale' => $this->_objectManager->get('Magento\Framework\Locale\ResolverInterface')->getLocale()]
+            );
+        }
+            $params['qty'] = $filter->filter($params['qty']);
+        // new
+        $storeId = $this->_objectManager->get('Magento\Store\Model\StoreManagerInterface')->getStore()->getId();
+        $product = $this->_productRepository->getById($this->_idsAndOptionIds['__children__']['test_bundle']['product_id'], false, $storeId);
         $this->_cart->addProduct($product,$params);
         $this->_cart->save();
+        // new
+        $this->_eventManager->dispatch(
+            'checkout_cart_add_product_complete',
+            ['product' => $product, 'request' => $this->getRequest(), 'response' => $this->getResponse()]
+        );
+        if (!$this->_checkoutSession->getNoCartRedirect(true)) {
+            if (!$this->_cart->getQuote()->getHasError()) {
+                $message = __(
+                    'You added %1 to your shopping cart.',
+                    $product->getName()
+                );
+                $this->messageManager->addSuccessMessage($message);
+            }
+//            return $this->goBack(null, $product);
+        }
+        // new
         return true;
     }
     /*
