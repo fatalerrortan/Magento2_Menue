@@ -7,14 +7,16 @@ use Magento\Framework\Event\ObserverInterface;
 class UpdateItemsOptionIds implements ObserverInterface{
 
     protected $_logger;
-    protected $_selectionIds;
-    protected $_selectionSkus;
-
+    protected $_toCartConfig;
+    protected $_bundleSKus;
+    protected $_scopeConfig;
 
     public function __construct(
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Psr\Log\LoggerInterface $logger
     ){
         $this->_logger = $logger;
+        $this->_scopeConfig = $scopeConfig;
     }
 /*
  * read and update all children products from the bundle product"weekend menu"
@@ -22,32 +24,33 @@ class UpdateItemsOptionIds implements ObserverInterface{
  */
     public function execute(\Magento\Framework\Event\Observer $observer){
 
-        $selectionIds = array();
-        $selectionSkus = array();
+        $configArray = array();
+        $bundleSkus = array();
+
         $product = $observer->getProduct();
-        if($product->getSku() != "test_bundle"){return true;}
+        if($product->getSku() != $this->_scopeConfig->getValue('menu/menu_group_1/menu_group_1_field_1')){return true;}
+
+//        $this->_logger->addDebug(print_r($this->_selectionIds, true));
+
+
         $selectionCollection = $product->getTypeInstance(true)
             ->getSelectionsCollection(
                 $product->getTypeInstance(true)->getOptionsIds($product),
                 $product
             );
-        $selectionIds['__main__'] = $product->getTypeInstance(true)->getOptionsIds($product);
         foreach ($selectionCollection as $proselection) {
             $item = array(
-                "product_id" => $proselection->getProductId(),
-                "option_id" => $proselection->getSelectionId()
+                "selection_id" => $proselection->getData('selection_id'),
+                "option_id" => $proselection->getData('option_id')
             );
-            $selectionIds['__children__'][$proselection->getSku()] = $item;
-            $selectionSkus[] = $proselection->getSku();
+            $bundleSkus[] = $proselection->getSku();
+            $configArray[$proselection->getSku()] = $item;
         }
-        $selectionIds['__children__'][$product->getSku()] = array(
-            "product_id" => $product->getId(),
-            "option_id" => ""
-        );
-        $this->_selectionIds = $selectionIds;
-        $this->_selectionSkus = $selectionSkus;
-//        $this->_logger->addDebug(print_r($this->_selectionIds, true));
-        if($this->save('inc','optionIds.txt') && $this->save('inc','optionSkus.txt', true)){return true;}
+        $configArray[$product->getSku()] = $product->getId();
+        $this->_toCartConfig = $configArray;
+        $this->_bundleSKus = $bundleSkus;
+//        $this->_logger->addDebug(print_r($configArray, true));
+        if($this->save('inc','toCartConfig.txt') && $this->save('inc','optionSkus.txt', true)){return true;}
     }
     /*
      * get module dir to save serialized array of option ids
@@ -67,8 +70,11 @@ class UpdateItemsOptionIds implements ObserverInterface{
         if(!is_dir($moduleDir)){
            mkdir($moduleDir,0777);
        }
-        if($flag == true){file_put_contents($moduleDir."/".$file, serialize($this->_selectionSkus));}
-        else{file_put_contents($moduleDir."/".$file, serialize($this->_selectionIds));}
+       if($flag){
+           file_put_contents($moduleDir."/".$file, serialize($this->_bundleSKus));
+       }else{
+           file_put_contents($moduleDir."/".$file, serialize($this->_toCartConfig));
+       }
         return true;
     }
 }

@@ -48,7 +48,7 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     * get custom product collection
     */
     public function getCustomCollection(){
-        $this->_logger->addDebug(print_r($this->getIdAndOptionSkus('inc','optionSkus.txt'),true));
+//        $this->_logger->addDebug(print_r($this->getIdAndOptionSkus('inc','optionSkus.txt'),true));
         $productCollection = $this->_customProductCollection->create()
             ->addAttributeToFilter('sku',array('in' => $this->getIdAndOptionSkus('inc','optionSkus.txt')))
             ->addAttributeToFilter('price_class',$this->_price_class);

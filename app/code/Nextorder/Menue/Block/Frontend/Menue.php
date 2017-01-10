@@ -96,10 +96,10 @@ class Menue extends \Magento\Framework\View\Element\Template{
     /*
      *  convert session params to json
      */
-    public function getSessionParam(){
-
-        foreach ($this->_session_customer as $session){
-
-        }
-    }
+//    public function getSessionParam(){
+//
+//        foreach ($this->_session_customer as $session){
+//
+//        }
+//    }
 }
