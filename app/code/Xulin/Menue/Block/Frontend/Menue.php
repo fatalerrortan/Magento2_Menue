@@ -7,13 +7,15 @@ class Menue extends \Magento\Framework\View\Element\Template{
     public $_helper;
     protected $_productCollection;
     protected $_customerSession;
-//    public $_session_customer;
+    protected $_customModel;
+    public $_session_customer;
 
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context, //parent block injection
         \Nextorder\Menue\Helper\Data $helper, //helper injection
         \Psr\Log\LoggerInterface $logger, //log injection
         \Magento\Catalog\Model\ProductFactory $productCollection, //product Factory injection
+        \Nextorder\Menue\Model\MenueFactory $menueFactory,
 //        \Magento\Framework\Session\SessionManagerInterface $customerSession,
         array $data = []
     )
@@ -23,6 +25,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $this->_productCollection = $productCollection->create();
 //        $this->_customerSession = $customerSession;
         $this->_session_customer = $this->getSession();
+        $this->_customModel = $menueFactory;
         parent::__construct($context, $data);
     }
     /*
@@ -102,4 +105,13 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //
 //        }
 //    }
+    public function forTest(){
+//        $testCollection =  $this->_customModel->create()->getCollection();
+//        foreach($testCollection as $item){
+//            return $item->getData();
+//        }
+        $testObj =  $this->_customModel->create();
+        $singleObj = $testObj->load('test2','label');
+        return $singleObj->getData();
+    }
 }
