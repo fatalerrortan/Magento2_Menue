@@ -1,4 +1,4 @@
-<?php //print_r($this->forTest()); ?>
+<?php ?>
 <h1>Auswählen Sie Speisen für 3, 4 oder 5 Tagen</h1>
 <div id="product_option">
     <span>Bestimmten die Anzahl von Produkten</span>
@@ -27,22 +27,12 @@ require(['jquery', 'jquery/ui'], function($) {
                 var index = jQuery(this).attr('index');
                 order_container["var_" + index] = jQuery(this).attr("sku");
             });
-        console.log(order_container);
+//        console.log(order_container);
     });
     /*
      Add iframe to choose target product
      */
     jQuery(".diy_button").click(function () {
-//        if (jQuery(this).hasClass('active')) {
-//            jQuery(this).parent().find("div.list_container div.product_list").slideToggle();
-//            return false;
-//        }
-//        var price_class = jQuery(this).attr('price_class');
-//        var index = jQuery(this).attr('index');
-//        var iframe = "<iframe class='variant_box' src='" + base_url + "menue/index/variant?class=" + price_class + "&index=" + index + "'" +
-//            "width='900px' height='450px' style='display: none' />";
-//        jQuery(this).parent().find("div.iframe_container").append(iframe);
-//        jQuery(this).addClass('active');
         jQuery(this).parent().find("div.list_container div.product_list").slideToggle();
     });
     /*
@@ -53,21 +43,21 @@ require(['jquery', 'jquery/ui'], function($) {
         if (selected == '5') {
             jQuery("#product_diy_container table tr").show();
             order_container.amount = 5;
-            console.log(order_container);
+//            console.log(order_container);
         }
         if (selected == '4') {
             jQuery("#product_diy_container table tr[index='5']").hide();
             jQuery("#product_diy_container table tr[index='4']").show();
             order_container.var_5 = "";
             order_container.amount = 4;
-            console.log(order_container);
+//            console.log(order_container);
         }
         if (selected == '3') {
             jQuery("#product_diy_container table tr[index='4'], #product_diy_container table tr[index='5']").hide();
             order_container.var_4 = "";
             order_container.var_5 = "";
             order_container.amount = 3;
-            console.log(order_container);
+//            console.log(order_container);
         }
     });
     /*
@@ -81,7 +71,7 @@ require(['jquery', 'jquery/ui'], function($) {
                 return false;
             }
             order_container["var_" + index] = jQuery(this).attr("sku");
-            console.log(order_container);
+//            console.log(order_container);
         }
     });
     /*
@@ -93,11 +83,13 @@ require(['jquery', 'jquery/ui'], function($) {
             if((key == "amount") || (value == "")){return;}
             data_to_post = data_to_post + value + ",";
         });
+        data_to_post = data_to_post.substring(0, data_to_post.length -1);
         var postData = new FormData();
         postData.append("menu_orders", data_to_post);
+        console.log(postData);
         jQuery.ajax({
             type: "POST",
-            url: base_url+"menue/index/cart",
+            url: base_url+"index.php/menue/index/cart",
             data: postData,
             contentType: false,
             processData: false,

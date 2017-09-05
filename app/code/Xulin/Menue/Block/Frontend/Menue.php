@@ -1,31 +1,42 @@
 <?php
 namespace Nextorder\Menue\Block\Frontend;
 
+use Nextorder\MenuData\Model\MenudataFactory;
+
 class Menue extends \Magento\Framework\View\Element\Template{
 
-    protected $_logger;
+    /**
+     * @var \Nextorder\MenuData\Model\MenudataFactory
+     */
+    protected $_modelMenudataFactory;
+
+    //protected $_logger;
     public $_helper;
     protected $_productCollection;
     protected $_customerSession;
-    protected $_customModel;
-    public $_session_customer;
+//    public $_session_customer;
 
+    /**
+     * @param Context $context
+     * @param MenudataFactory $modelMenudataFactory
+     */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context, //parent block injection
         \Nextorder\Menue\Helper\Data $helper, //helper injection
-        \Psr\Log\LoggerInterface $logger, //log injection
+        //\Psr\Log\LoggerInterface $logger, //log injection
         \Magento\Catalog\Model\ProductFactory $productCollection, //product Factory injection
-        \Nextorder\Menue\Model\MenueFactory $menueFactory,
 //        \Magento\Framework\Session\SessionManagerInterface $customerSession,
+        \Magento\Customer\Model\Session $customerSession,
+        MenudataFactory $modelMenudataFactory,
         array $data = []
     )
     {
         $this->_helper = $helper;
-        $this->_logger = $logger;
+        //$this->_logger = $logger;
         $this->_productCollection = $productCollection->create();
-//        $this->_customerSession = $customerSession;
+        $this->_customerSession = $customerSession;
         $this->_session_customer = $this->getSession();
-        $this->_customModel = $menueFactory;
+        $this->_modelMenudataFactory = $modelMenudataFactory;
         parent::__construct($context, $data);
     }
     /*
@@ -33,9 +44,34 @@ class Menue extends \Magento\Framework\View\Element\Template{
      */
     public function loadProductHtmlBySku(){
 
+        $menudataModel = $this->_modelMenudataFactory->create();
+        $customerMenu = null;
+        $customerMenuSkus = array();
+        if ($this->_customerSession->isLoggedIn())
+        {
+            $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
+            $customerMenuSkus[] = explode(",",$customerMenu['product_mon']);
+            $customerMenuSkus[] = explode(",",$customerMenu['product_tue']);
+            $customerMenuSkus[] = explode(",",$customerMenu['product_wed']);
+            $customerMenuSkus[] = explode(",",$customerMenu['product_thu']);
+            $customerMenuSkus[] = explode(",",$customerMenu['product_fri']);
+        }
         $sessionProducts = $this->_session_customer;
         if(empty($sessionProducts)){
             $products = $this->_helper->getAdminConfig();
+            if ($this->_customerSession->isLoggedIn())
+            {
+                $products = array();
+                for ($i = 0; $i<5 ; $i++)
+                {
+
+                    $products[] = $customerMenuSkus[$i][0];
+                }
+            }
+            /* beim ersten Login ist es noch leer */
+            if (empty($products)) {
+                $products = $this->_helper->getAdminConfig();
+            }
         }else{
             foreach ($this->_helper->getAdminConfig() as $key => $value){
                 if(empty($sessionProducts[$key])){
@@ -43,10 +79,28 @@ class Menue extends \Magento\Framework\View\Element\Template{
                 }
             }
             $products = $sessionProducts;
+            if ($this->_customerSession->isLoggedIn())
+            {
+                $products = array();
+                for ($i = 0; $i<5 ; $i++)
+                {
+
+                    $products[] = $customerMenuSkus[$i][0];
+                }
+            }
+            if (empty($products)) {
+                $products = $sessionProducts;
+            }
         }
 
         $html = '';
         $index = 1;
+
+        $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
+        $optionIds = array_keys($bundles);
+        $optionIdIndex = 0;
+//        $this->_logger->addDebug(print_r(array_keys($bundles), true));
+
         foreach ($products as $item) {
             $product = $this->_productCollection->loadByAttribute('sku', $item);
 //            $this->_logger->addDebug($this->getUrl('pub/media/catalog').'product'.$product->getImage());
@@ -55,17 +109,19 @@ class Menue extends \Magento\Framework\View\Element\Template{
             $imgUrl = $this->getUrl('pub/media/catalog').'product'.$product->getImage();
             $productShortDescription = $product->getShortDescription();
             $priceClass = $product->getData('price_class');
-            $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index);
+            $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index, $optionIds[$optionIdIndex]);
             $index++;
+            $optionIdIndex++;
         }
         return $html;
     }
     /*
      * load html wrapper for each product
      */
-    public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index){
+    public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index, $optionId){
         $this->getChildBlock("ListProduct")->setPriceClass($priceClass);
         $this->getChildBlock("ListProduct")->setMenuIndex($index);
+        $this->getChildBlock("ListProduct")->setOptionIdindex($optionId);
         $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index.">
                 <td class='img_container'>
                     <img src='".$imgUrl."' scrset='".$imgUrl."' alt='".$name."' width='200px' height='200px' />
@@ -76,7 +132,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                         <span>".$description."</span>
                     </div>
                     <div>
-                        <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."'>Austausch</button>
+                        <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."' day='".$index."'>Austausch</button>
                         <div class='list_container'>
                         ".$this->getChildHtml('ListProduct',false)."
                         </div>
@@ -105,13 +161,4 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //
 //        }
 //    }
-    public function forTest(){
-//        $testCollection =  $this->_customModel->create()->getCollection();
-//        foreach($testCollection as $item){
-//            return $item->getData();
-//        }
-        $testObj =  $this->_customModel->create();
-        $singleObj = $testObj->load('test2','label');
-        return $singleObj->getData();
-    }
 }

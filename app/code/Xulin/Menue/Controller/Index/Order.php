@@ -24,11 +24,10 @@ class Order extends \Magento\Framework\App\Action\Action{
     }
 
     public function execute(){
-//        $resultRedirect = $this->resultRedirectFactory->create();
-//       return $resultRedirect->setPath('checkout/cart/index');
-        if ($this->getRequest()->getParam("menu_orders")){
-            echo "123";
-        }
+        echo 'test';
+//        if ($this->getRequest()->getParam("menu_orders")){
+//            echo "123";
+//        }
     }
 
 //    protected function addProductsInCart(){

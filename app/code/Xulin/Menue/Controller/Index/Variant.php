@@ -23,6 +23,7 @@ class Variant extends \Magento\Framework\App\Action\Action
         // load custom helper in Controller
 //        $test = $this->_objectManager->create('Nextorder\Menue\Helper\Data')->testHelper();
 //        echo $this->_helper->getAdminConfig()[1];
+        echo 'test!!!';
         $resultPage = $this->_resultPageFactory->create();
         return $resultPage;
     }
