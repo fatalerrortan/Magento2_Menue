@@ -99,7 +99,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         $optionIds = array_keys($bundles);
         $optionIdIndex = 0;
-//        $this->_logger->addDebug(print_r(array_keys($bundles), true));
 
         foreach ($products as $item) {
             $product = $this->_productCollection->loadByAttribute('sku', $item);
@@ -119,10 +118,20 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * load html wrapper for each product
      */
     public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index, $optionId){
+        $week = array(
+            1 => 'Montag',
+            2 => 'Dienstag',
+            3 => 'Mittwoche',
+            4 => 'Donnerstag',
+            5 => 'Freitag'
+        );
         $this->getChildBlock("ListProduct")->setPriceClass($priceClass);
         $this->getChildBlock("ListProduct")->setMenuIndex($index);
         $this->getChildBlock("ListProduct")->setOptionIdindex($optionId);
         $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index.">
+                <td class='menue_tag'>
+                    <b>".$week[$index]."</b>
+                </td>
                 <td class='img_container'>
                     <img src='".$imgUrl."' scrset='".$imgUrl."' alt='".$name."' width='200px' height='200px' />
                     <h5>".$name."</h5>
@@ -140,7 +149,10 @@ class Menue extends \Magento\Framework\View\Element\Template{
                  </td>
                  <td class='product_price'>
                     <span>".$price."&euro;</span>
-                 </td>   
+                 </td>  
+                 <td class='status'>
+                    <button class='status_button active' onclick='menuStatus(this)'>Disable</button>
+                 </td>
                </tr>";
         return $html;
     }

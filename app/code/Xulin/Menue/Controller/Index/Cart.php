@@ -14,6 +14,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
     protected $_scopeConfig;
     protected $_logger;
     public $_helper;
+    public $_messageManager;
 
     public function __construct(
                                 Context $context,
@@ -22,6 +23,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
                                 \Magento\Catalog\Model\ProductFactory $productFactory, //product Factory injection
                                 \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
                                 \Psr\Log\LoggerInterface $logger,
+                                \Magento\Framework\Message\ManagerInterface $messageManager,
                                 \Nextorder\Menue\Helper\Data $helper //helper injection
     ){
         $this->_helper = $helper;
@@ -29,6 +31,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
         $this->_checkoutSession = $checkoutSession;
         $this->_productFactory = $productFactory->create();
         $this->_scopeConfig = $scopeConfig;
+        $this->_messageManager = $messageManager;
 //        $this->_idsAndOptionIds = $this->_helper('inc','toCartConfig.txt');
         $this->_logger = $logger;
         parent::__construct($context);
@@ -61,7 +64,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
         $index = 0;
         foreach ($bundledatas as $bundledata){
             $currentSKU = $skus[$index];
-            if($currentSKU === 'empty'){$index++; continue;}
+            if($currentSKU === 'disable'){$index++; continue;}
             $currentOptionId = $optionIds[$index];
             $currentSelectionId = $bundledata[$currentSKU];
             $bundle_option[$currentOptionId] = $currentSelectionId;
@@ -69,37 +72,6 @@ class Cart extends \Magento\Framework\App\Action\Action{
             $index++;
         }
 
-
-//        $this->_logger->addDebug(print_r($bundle_option, true));
-//        $this->_logger->addDebug(print_r($bundle_option_qty, true));
-
-
-
-//        $bundle = $this->_productRepository->get($this->_scopeConfig->getValue('menu/menu_group_1/menu_group_1_field_1'));
-//        $selectionCollection = $bundle->getTypeInstance(true)
-//            ->getSelectionsCollection(
-//                $bundle->getTypeInstance(true)->getOptionsIds($bundle),
-//                $bundle
-//            );
-//        $optionIds = array();
-//        foreach ($selectionCollection as $selection) {
-//            if (!in_array($selection->getData('option_id'),$optionIds)) {
-//                $optionIds[] = $selection->getData('option_id');
-//            }
-//        }
-//        $o = 0;
-//        foreach ($skus as $sku){
-//            if(empty($sku)){continue;}
-//            $bundle_option[$optionIds[$o]] = $this->_idsAndOptionIds[$sku]['selection_id'];
-//            $bundle_option_qty[$optionIds[$o]] = $counts[$sku];
-//            $o++;
-//        }
-//
-//
-//
-//
-//
-//
         $params = [
             'uenc' => null,
             'product' => $bundleProductId,
@@ -111,7 +83,6 @@ class Cart extends \Magento\Framework\App\Action\Action{
             'qty' => 1
         ];
 
-////        $this->_logger->addDebug(json_encode($params));
         if (isset($params['qty'])) {
             $filter = new \Zend_Filter_LocalizedToNormalized(
                 ['locale' => $this->_objectManager->get('Magento\Framework\Locale\ResolverInterface')->getLocale()]
@@ -119,11 +90,6 @@ class Cart extends \Magento\Framework\App\Action\Action{
         }
 
         $params['qty'] = $filter->filter($params['qty']);
-//        $storeId = $this->_objectManager->get('Magento\Store\Model\StoreManagerInterface')->getStore()->getId();
-//        $product = $this->_productRepository->getById($this->_idsAndOptionIds[$this->_scopeConfig->getValue('menu/menu_group_1/menu_group_1_field_1')], false, $storeId);
-//
-//        $this->_logger->addDebug(print_r($params, true));
-//
         $this->_cart->addProduct($bundleProduct,$params);
         $this->_cart->save();
         $this->_eventManager->dispatch(

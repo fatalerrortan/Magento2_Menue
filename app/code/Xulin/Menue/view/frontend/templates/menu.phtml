@@ -1,13 +1,13 @@
 <?php ?>
 <h1>Auswählen Sie Speisen für 3, 4 oder 5 Tagen</h1>
-<div id="product_option">
-    <span>Bestimmten die Anzahl von Produkten</span>
-    <select>
-        <option value="5">5 Tage</option>
-        <option value="4">4 Tage</option>
-        <option value="3">3 Tage</option>
-    </select>
-</div>
+<!--<div id="product_option">-->
+<!--    <span>Bestimmten die Anzahl von Produkten</span>-->
+<!--    <select>-->
+<!--        <option value="5">5 Tage</option>-->
+<!--        <option value="4">4 Tage</option>-->
+<!--        <option value="3">3 Tage</option>-->
+<!--    </select>-->
+<!--</div>-->
 
 <div id="product_diy_container">
     <table border="1">
@@ -71,7 +71,6 @@ require(['jquery', 'jquery/ui'], function($) {
                 return false;
             }
             order_container["var_" + index] = jQuery(this).attr("sku");
-//            console.log(order_container);
         }
     });
     /*
@@ -117,25 +116,25 @@ require(['jquery', 'jquery/ui'], function($) {
     /*
     save tmp user choose in Session
      */
-    jQuery(window).bind('beforeunload',function(){
-
-        var data_to_post = "";
-        jQuery.each(order_container, function (key, value) {
-            if((key == "amount") || (value == "")){return;}
-            data_to_post = data_to_post + value + ",";
-        });
-        var postData = new FormData();
-        postData.append("user_choose", data_to_post);
-        jQuery.ajax({
-            type: "POST",
-            url: base_url+"menue/index/Session",
-            data: postData,
-            contentType: false,
-            processData: false,
-            dataType: "text",
-            success: function(data){}
-        });
-    });
+//    jQuery(window).bind('beforeunload',function(){
+//
+//        var data_to_post = "";
+//        jQuery.each(order_container, function (key, value) {
+//            if((key == "amount") || (value == "")){return;}
+//            data_to_post = data_to_post + value + ",";
+//        });
+//        var postData = new FormData();
+//        postData.append("user_choose", data_to_post);
+//        jQuery.ajax({
+//            type: "POST",
+//            url: base_url+"menue/index/Session",
+//            data: postData,
+//            contentType: false,
+//            processData: false,
+//            dataType: "text",
+//            success: function(data){}
+//        });
+//    });
 });
     /*
      load new product in menu block
@@ -157,6 +156,32 @@ require(['jquery', 'jquery/ui'], function($) {
             target_block.find("td.product_price span").html(price);
         });
         return true;
+    }
+
+    function menuStatus(element) {
+        require(['jquery', 'jquery/ui'], function($) {
+            var currentStatus = $(element).hasClass('active');
+            var currentIndex =  $(element).parent().parent().attr('index');
+            if (currentStatus){
+                $(element).parent().parent().css("background-color", "grey");
+                $(element).removeClass('active');
+                $(element).html('Enable');
+                $(element).parent().parent().find('td.product_info')
+                    .find('button').first().html("<del>Austausch</del>").prop('disabled', true);
+                $(element).parent().parent().find('td.product_info').find('div.list_container').hide();
+                order_container['var_5'] = 'disable';
+                console.log(order_container);
+            }else {
+                $(element).parent().parent().css("background-color", "white");
+                $(element).addClass('active');
+                $(element).html('Disable');
+                $(element).parent().parent().find('td.product_info')
+                    .find('button').first().html("Austausch").prop('disabled', false);
+                $(element).parent().parent().find('td.product_info').find('div.list_container').show();
+                order_container['var_'+currentIndex] = $(element).parent().parent().attr('sku');
+                console.log(order_container);
+            }
+        });
     }
 </script>
 
