@@ -80,13 +80,14 @@ require(['jquery', 'jquery/ui'], function($) {
     jQuery("#to_cart").click(function () {
         var data_to_post = "";
         jQuery.each(order_container, function (key, value) {
-            if((key == "amount") || (value == "")){return;}
+//            if((key == "amount") || (value == "")){return;}
+            if(key == "amount"){return;}
             data_to_post = data_to_post + value + ",";
         });
         data_to_post = data_to_post.substring(0, data_to_post.length -1);
         var postData = new FormData();
         postData.append("menu_orders", data_to_post);
-        console.log(postData);
+        console.log(data_to_post);
         jQuery.ajax({
             type: "POST",
             url: base_url+"index.php/menue/index/cart",

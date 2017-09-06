@@ -25,6 +25,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
         );
     }
 
+    public function getBundleProductSku(){
+        return $this->_scopeConfig->getValue('menu/menu_group_1/menu_group_1_field_1');
+    }
+
     public function getSerializedData($dir, $file){
         $serializedArray = file_get_contents($this->df_module_dir("Nextorder_Menue")."/".$dir."/".$file);
         return unserialize($serializedArray);
