@@ -25,10 +25,6 @@ class UpdateItemsOptionIds implements ObserverInterface{
  */
     public function execute(\Magento\Framework\Event\Observer $observer){
 
-//        $configArray = array();
-//        $bundleSkus = array();
-
-
         $bundleDataSource = array();
 
         $product = $observer->getProduct();
@@ -39,27 +35,13 @@ class UpdateItemsOptionIds implements ObserverInterface{
                 $product
             );
         foreach ($selectionCollection as $proselection) {
-//            $item = array(
-//                "selection_id" => $proselection->getData('selection_id'),
-//                "option_id" => $proselection->getData('option_id')
-//            );
-//            $bundleSkus[] = $proselection->getSku();
-//            $configArray[$proselection->getSku()] = $item;
-
             $selectionID = $proselection->getData('selection_id');
             $optionID = $proselection->getData('option_id');
             $sku = $proselection->getSku();
             $bundleDataSource[$optionID][$sku] = $selectionID;
         }
         $this->_bundleDataSource = $bundleDataSource;
-//        $configArray[$product->getSku()] = $product->getId();
-//        $this->_toCartConfig = $configArray;
-//        $this->_bundleSKus = $bundleSkus;
-//
-//        $this->_logger->addDebug(print_r($configArray, true));
-//        $this->_logger->addDebug(print_r($bundleSkus, true));
-//
-//        if($this->save('inc','toCartConfig.txt') && $this->save('inc','optionSkus.txt', true)){return true;}
+
         return $this->save('inc','bundleDataSource.txt');
     }
     /*

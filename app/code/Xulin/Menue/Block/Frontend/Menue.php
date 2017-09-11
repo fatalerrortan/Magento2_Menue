@@ -10,10 +10,11 @@ class Menue extends \Magento\Framework\View\Element\Template{
      */
     protected $_modelMenudataFactory;
 
-    //protected $_logger;
+    protected $_logger;
     public $_helper;
     protected $_productCollection;
     protected $_customerSession;
+    protected $_customerRepository;
 //    public $_session_customer;
 
     /**
@@ -23,8 +24,9 @@ class Menue extends \Magento\Framework\View\Element\Template{
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context, //parent block injection
         \Nextorder\Menue\Helper\Data $helper, //helper injection
-        //\Psr\Log\LoggerInterface $logger, //log injection
+        \Psr\Log\LoggerInterface $logger, //log injection
         \Magento\Catalog\Model\ProductFactory $productCollection, //product Factory injection
+        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
 //        \Magento\Framework\Session\SessionManagerInterface $customerSession,
         \Magento\Customer\Model\Session $customerSession,
         MenudataFactory $modelMenudataFactory,
@@ -32,7 +34,8 @@ class Menue extends \Magento\Framework\View\Element\Template{
     )
     {
         $this->_helper = $helper;
-        //$this->_logger = $logger;
+        $this->_logger = $logger;
+        $this->_customerRepository = $customerRepository;
         $this->_productCollection = $productCollection->create();
         $this->_customerSession = $customerSession;
         $this->_session_customer = $this->getSession();
@@ -47,59 +50,43 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $menudataModel = $this->_modelMenudataFactory->create();
         $customerMenu = null;
         $customerMenuSkus = array();
-        if ($this->_customerSession->isLoggedIn())
-        {
+        $products = array();
+        if ($this->_customerSession->isLoggedIn()) {
             $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
-            $customerMenuSkus[] = explode(",",$customerMenu['product_mon']);
-            $customerMenuSkus[] = explode(",",$customerMenu['product_tue']);
-            $customerMenuSkus[] = explode(",",$customerMenu['product_wed']);
-            $customerMenuSkus[] = explode(",",$customerMenu['product_thu']);
-            $customerMenuSkus[] = explode(",",$customerMenu['product_fri']);
-        }
-        $sessionProducts = $this->_session_customer;
-        if(empty($sessionProducts)){
-            $products = $this->_helper->getAdminConfig();
-            if ($this->_customerSession->isLoggedIn())
-            {
-                $products = array();
-                for ($i = 0; $i<5 ; $i++)
-                {
+            if(empty($customerMenu)){
+                // no bound data to talent => e.g. first login
+                $products = $this->_helper->getAdminConfig();
+            }else{
+                $customerMenuSkus[] = explode(",",$customerMenu['product_mon']);
+                $customerMenuSkus[] = explode(",",$customerMenu['product_tue']);
+                $customerMenuSkus[] = explode(",",$customerMenu['product_wed']);
+                $customerMenuSkus[] = explode(",",$customerMenu['product_thu']);
+                $customerMenuSkus[] = explode(",",$customerMenu['product_fri']);
 
+                $authDataToWP = $this->userValidate();
+                if(!empty($authDataToWP)){
+//                    $this->_logger->addDebug(print_r($this->userValidate(), true));
+                    $wpCosumerKey = $authDataToWP['wp_cosumer_key'];
+                    $wpCosumerSecret = $authDataToWP['wp_cosumer_secret'];
+                }else{
+                    //accouts which has data from talent, but not connected to WP (Free Registed User)
+                    $this->_logger->addDebug(print_r('NO Connected', true));
+                }
+
+                for ($i = 0; $i<5 ; $i++) {
                     $products[] = $customerMenuSkus[$i][0];
                 }
-            }
-            /* beim ersten Login ist es noch leer */
-            if (empty($products)) {
-                $products = $this->_helper->getAdminConfig();
             }
         }else{
-            foreach ($this->_helper->getAdminConfig() as $key => $value){
-                if(empty($sessionProducts[$key])){
-                    $sessionProducts[$key] = $value;
-                }
-            }
-            $products = $sessionProducts;
-            if ($this->_customerSession->isLoggedIn())
-            {
-                $products = array();
-                for ($i = 0; $i<5 ; $i++)
-                {
-
-                    $products[] = $customerMenuSkus[$i][0];
-                }
-            }
-            if (empty($products)) {
-                $products = $sessionProducts;
-            }
+            $products = $this->_helper->getAdminConfig();
         }
-
         $html = '';
         $index = 1;
 
         $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         $optionIds = array_keys($bundles);
         $optionIdIndex = 0;
-
+//            $this->_logger->addDebug(print_r($products, true));
         foreach ($products as $item) {
             $product = $this->_productCollection->loadByAttribute('sku', $item);
 //            $this->_logger->addDebug($this->getUrl('pub/media/catalog').'product'.$product->getImage());
@@ -113,6 +100,40 @@ class Menue extends \Magento\Framework\View\Element\Template{
             $optionIdIndex++;
         }
         return $html;
+    }
+    /*
+     * validate whether the user is bound to a company
+     * @ return boolean
+     */
+    public function userValidate(){
+        $currentCustomer = $this->_customerSession;
+//        $this->_logger->addDebug(print_r($currentCustomer->getCustomer()->getData(), true));
+        $parentEmail = $currentCustomer->getCustomer()->getData('parent_email');
+        $wpCosumerKey = $currentCustomer->getCustomer()->getData('wp_cosumer_key');
+        $wpCosumerSecret = $currentCustomer->getCustomer()->getData('wp_cosumer_secret');
+        if( (!empty($parentEmail))
+            ||
+            ((!empty($wpCosumerKey)) && (!empty($wpCosumerSecret)))
+        ) {
+            if(empty($parentEmail)){ // current account should be super account.
+                $this->_logger->addDebug(print_r('use data directly', true));
+                return array(
+                    'wp_cosumer_key' => $wpCosumerKey,
+                    'wp_cosumer_secret' => $wpCosumerSecret
+                );
+            }else{
+                // condition => parent ID exists => load parent obj to get key and secret
+                $this->_logger->addDebug(print_r('load parent', true));
+                $parent = $this->_customerRepository->get($parentEmail);
+                return array(
+                    'wp_cosumer_key' => $parent->getCustomAttribute('wp_cosumer_key')->getValue(),
+                    'wp_cosumer_secret' => $parent->getCustomAttribute('wp_cosumer_secret')->getValue()
+                );
+            }
+        }
+        else{
+            return array();
+        }
     }
     /*
      * load html wrapper for each product

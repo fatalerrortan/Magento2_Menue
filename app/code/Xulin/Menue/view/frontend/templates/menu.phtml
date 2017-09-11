@@ -16,7 +16,7 @@
     <hr /><center><button id="to_cart" class="action primary">In Warenkorb</button></center>
 </div>
 <script type="text/javascript">
-    var order_container = {"amount":5, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":""};
+    var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":""};
     var base_url = "<?php echo $this->getUrl(); ?>";
 // func for loading js container
 require(['jquery', 'jquery/ui'], function($) {
@@ -63,16 +63,16 @@ require(['jquery', 'jquery/ui'], function($) {
     /*
      update json "order container" when loading new product
      */
-    jQuery("tr[class*='price_class_']").attrchange({
-        trackValues: true,
-        callback: function (event) {
-            var index = jQuery(this).attr('index');
-            if(parseInt(index) > order_container.amount){
-                return false;
-            }
-            order_container["var_" + index] = jQuery(this).attr("sku");
-        }
-    });
+//    jQuery("tr[class*='price_class_']").attrchange({
+//        trackValues: true,
+//        callback: function (event) {
+//            var index = jQuery(this).attr('index');
+//            if(parseInt(index) > order_container.amount){
+//                return false;
+//            }
+//            order_container["var_" + index] = jQuery(this).attr("sku");
+//        }
+//    });
     /*
     read ordered products in order_container json and set in cart
      */
@@ -163,16 +163,23 @@ require(['jquery', 'jquery/ui'], function($) {
             var currentStatus = $(element).hasClass('active');
             var currentIndex =  $(element).parent().parent().attr('index');
             if (currentStatus){
+                if(order_container.amount >= 2){
+                    return alert('Sie sollten mindestens für drei Tage bestellen!');
+                }
+                order_container.amount = order_container.amount + 1;
                 $(element).parent().parent().css("background-color", "grey");
                 $(element).removeClass('active');
+                $(element).css('background-color', 'green');
                 $(element).html('Enable');
                 $(element).parent().parent().find('td.product_info')
                     .find('button').first().html("<del>Austausch</del>").prop('disabled', true);
                 $(element).parent().parent().find('td.product_info').find('div.list_container').hide();
-                order_container['var_5'] = 'disable';
+                order_container['var_'+currentIndex] = 'disable';
                 console.log(order_container);
             }else {
+                order_container.amount = order_container.amount - 1;
                 $(element).parent().parent().css("background-color", "white");
+                $(element).css('background-color', 'white');
                 $(element).addClass('active');
                 $(element).html('Disable');
                 $(element).parent().parent().find('td.product_info')

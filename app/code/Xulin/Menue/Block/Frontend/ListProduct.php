@@ -68,34 +68,33 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct
         {
             $menudataModel = $this->_modelMenudataFactory->create();
             $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
-            switch ($this->_menu_index) {
-                case 1:
-                    $skus = explode(",",$customerMenu['product_mon']);
-                    break;
-                case 2:
-                    $skus = explode(",",$customerMenu['product_tue']);
-                    break;
-                case 3:
-                    $skus = explode(",",$customerMenu['product_wed']);
-                    break;
-                case 4:
-                    $skus = explode(",",$customerMenu['product_thu']);
-                    break;
-                case 5:
-                    $skus = explode(",",$customerMenu['product_fri']);
-                    break;
-            }
-            $productCollection = $this->_customProductCollection->create()->addAttributeToSelect('*')
-                ->addAttributeToFilter('sku', array('in' => $skus));
-            /* bei erstem Login ist Collection noch empty */
-            if (empty($productCollection)) {
+            if(!empty($customerMenu)){
+                switch ($this->_menu_index) {
+                    case 1:
+                        $skus = explode(",",$customerMenu['product_mon']);
+                        break;
+                    case 2:
+                        $skus = explode(",",$customerMenu['product_tue']);
+                        break;
+                    case 3:
+                        $skus = explode(",",$customerMenu['product_wed']);
+                        break;
+                    case 4:
+                        $skus = explode(",",$customerMenu['product_thu']);
+                        break;
+                    case 5:
+                        $skus = explode(",",$customerMenu['product_fri']);
+                        break;
+                }
+                $productCollection = $this->_customProductCollection->create()->addAttributeToSelect('*')
+                    ->addAttributeToFilter('sku', array('in' => $skus));
+            }else{
+                $arrayToFilter= array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
                 $productCollection = $this->_customProductCollection->create()
-                    ->addAttributeToFilter('sku', array('in' => $this->getIdAndOptionSkus('inc', 'optionSkus.txt')))
-                    ->addAttributeToFilter('price_class', $this->_price_class);
+                    ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
             }
         } else {
-
-         $arrayToFilter= array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
+            $arrayToFilter= array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
             $productCollection = $this->_customProductCollection->create()
                 ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
 //                ->addAttributeToFilter('price_class', $this->_price_class);

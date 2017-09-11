@@ -39,6 +39,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
     public function execute(){
         if ($this->getRequest()->getParam("menu_orders")){
             $menu_orders_skus = explode(",", $this->getRequest()->getParam("menu_orders"));
+            $this->_logger->addDebug(print_r($menu_orders_skus, true));
             if($this->addProductsInCart($menu_orders_skus)){echo "worked";}
         }
     }
@@ -50,7 +51,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
 
         $bundle_option = array();
         $bundle_option_qty = array();
-        $counts = array_count_values($skus);
+//        $counts = array_count_values($skus);
 
         $bundledatas = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         $optionIds =array_keys($bundledatas);
