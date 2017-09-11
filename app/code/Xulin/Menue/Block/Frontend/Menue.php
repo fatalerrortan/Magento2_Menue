@@ -2,6 +2,7 @@
 namespace Nextorder\Menue\Block\Frontend;
 
 use Nextorder\MenuData\Model\MenudataFactory;
+use Automattic\WooCommerce\Client;
 
 class Menue extends \Magento\Framework\View\Element\Template{
 
@@ -9,7 +10,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * @var \Nextorder\MenuData\Model\MenudataFactory
      */
     protected $_modelMenudataFactory;
-
     protected $_logger;
     public $_helper;
     protected $_productCollection;
@@ -65,16 +65,36 @@ class Menue extends \Magento\Framework\View\Element\Template{
 
                 $authDataToWP = $this->userValidate();
                 if(!empty($authDataToWP)){
-//                    $this->_logger->addDebug(print_r($this->userValidate(), true));
                     $wpCosumerKey = $authDataToWP['wp_cosumer_key'];
                     $wpCosumerSecret = $authDataToWP['wp_cosumer_secret'];
+                    $wpShopUrl = $authDataToWP['wp_shop_url'];
+                    $remoteSkus = $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
+//                    $this->_logger->addDebug("!!!!!!!!!!!!Remote SKUs!!!!!!!!!");
+//                    $this->_logger->addDebug(print_r($remoteSkus, true));
+                    for ($i = 0; $i<5 ; $i++) {
+                        $toAssignSku = null;
+                        foreach ($customerMenuSkus[$i] as $currentMenuDataSku){
+                            if(in_array($currentMenuDataSku, $remoteSkus)){
+                                $toAssignSku = $currentMenuDataSku;
+                                break;
+                            }
+                        }
+//                        $this->_logger->addDebug("Assigned to Index: ".$i);
+//                        $this->_logger->addDebug(print_r($toAssignSku, true));
+                        if(empty($toAssignSku)){
+                            $products[] = $this->_helper->getAdminConfig()[$i];
+                        }else{
+                            $products[] = $toAssignSku;
+                        }
+                    }
+//                    $this->_logger->addDebug("!!!!!!!!!!!!Load at end!!!!!!!!!");
+//                    $this->_logger->addDebug(print_r($products, true));
                 }else{
                     //accouts which has data from talent, but not connected to WP (Free Registed User)
-                    $this->_logger->addDebug(print_r('NO Connected', true));
-                }
-
-                for ($i = 0; $i<5 ; $i++) {
-                    $products[] = $customerMenuSkus[$i][0];
+//                    $this->_logger->addDebug(print_r('NO Connected', true));
+                    for ($i = 0; $i<5 ; $i++) {
+                        $products[] = $customerMenuSkus[$i][0];
+                    }
                 }
             }
         }else{
@@ -82,7 +102,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
         }
         $html = '';
         $index = 1;
-
         $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         $optionIds = array_keys($bundles);
         $optionIdIndex = 0;
@@ -103,7 +122,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
     }
     /*
      * validate whether the user is bound to a company
-     * @ return boolean
      */
     public function userValidate(){
         $currentCustomer = $this->_customerSession;
@@ -111,29 +129,53 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $parentEmail = $currentCustomer->getCustomer()->getData('parent_email');
         $wpCosumerKey = $currentCustomer->getCustomer()->getData('wp_cosumer_key');
         $wpCosumerSecret = $currentCustomer->getCustomer()->getData('wp_cosumer_secret');
+        $wpShopUrl = $currentCustomer->getCustomer()->getData('wp_shop_url');
         if( (!empty($parentEmail))
             ||
             ((!empty($wpCosumerKey)) && (!empty($wpCosumerSecret)))
         ) {
             if(empty($parentEmail)){ // current account should be super account.
-                $this->_logger->addDebug(print_r('use data directly', true));
                 return array(
                     'wp_cosumer_key' => $wpCosumerKey,
-                    'wp_cosumer_secret' => $wpCosumerSecret
+                    'wp_cosumer_secret' => $wpCosumerSecret,
+                    'wp_shop_url' => $wpShopUrl
                 );
             }else{
                 // condition => parent ID exists => load parent obj to get key and secret
-                $this->_logger->addDebug(print_r('load parent', true));
                 $parent = $this->_customerRepository->get($parentEmail);
                 return array(
                     'wp_cosumer_key' => $parent->getCustomAttribute('wp_cosumer_key')->getValue(),
-                    'wp_cosumer_secret' => $parent->getCustomAttribute('wp_cosumer_secret')->getValue()
+                    'wp_cosumer_secret' => $parent->getCustomAttribute('wp_cosumer_secret')->getValue(),
+                    'wp_shop_url' => $parent->getCustomAttribute('wp_shop_url')->getValue(),
                 );
             }
         }
         else{
             return array();
         }
+    }
+    /*
+     * load in stock skus from remote wordpress
+     * @ return array
+     */
+    public function getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret){
+        $woocommerce = new Client(
+            $wpShopUrl,
+            $wpCosumerKey,
+            $wpCosumerSecret,
+            [
+                'wp_api' => true,
+                'version' => 'wc/v1'
+            ]
+        );
+        $remoteSkus = array();
+        $remoteProducts = $woocommerce->get('products');
+        foreach ($remoteProducts as $product){
+            if($product['in_stock']){
+                $remoteSkus[] = $product['sku'];
+            }
+        }
+        return $remoteSkus;
     }
     /*
      * load html wrapper for each product
