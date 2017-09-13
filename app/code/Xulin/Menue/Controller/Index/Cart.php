@@ -91,6 +91,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
         }
 
         $params['qty'] = $filter->filter($params['qty']);
+        $this->_logger->addDebug(print_r($params, true));
         $this->_cart->addProduct($bundleProduct,$params);
         $this->_cart->save();
         $this->_eventManager->dispatch(

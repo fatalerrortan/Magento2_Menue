@@ -46,16 +46,48 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * load Predefined Products in Weekend Menu
      */
     public function loadProductHtmlBySku(){
-
         $menudataModel = $this->_modelMenudataFactory->create();
         $customerMenu = null;
         $customerMenuSkus = array();
         $products = array();
+        $localDefaultSKus = $this->_helper->getAdminConfig();
+        $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         if ($this->_customerSession->isLoggedIn()) {
             $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
-            if(empty($customerMenu)){
-                // no bound data to talent => e.g. first login
-                $products = $this->_helper->getAdminConfig();
+            $authDataToWP = $this->userValidate();
+            if(empty($customerMenu)){//first login
+                if(!empty($authDataToWP)){ //first login with connected firm
+                    $wpCosumerKey = $authDataToWP['wp_cosumer_key'];
+                    $wpCosumerSecret = $authDataToWP['wp_cosumer_secret'];
+                    $wpShopUrl = $authDataToWP['wp_shop_url'];
+                    $remoteSkus = $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
+//                    $this->_logger->addDebug(print_r($remoteSkus, true));
+                    $index = 0;
+                    foreach ($localDefaultSKus as $localDefaultSKu){
+                        if(in_array($localDefaultSKu, $remoteSkus)){
+                            $products[] = $localDefaultSKu;
+                        }else{
+                            $optionIds = array_keys($bundles);
+                            $skuToAssign = null;
+//                            $this->_logger->addDebug(print_r(array_keys($bundles[$optionIds[$index]]), true));
+                            foreach($remoteSkus as $remoteSku){
+                                if(in_array($remoteSku, array_keys($bundles[$optionIds[$index]]))){
+                                    $skuToAssign = $remoteSku;
+                                    break;
+                                }
+                            }
+                            if(!empty($skuToAssign)){
+                                $products[] = $skuToAssign;
+                            }else{
+                                $products[] = 'NO_MATCH';
+                            }
+                        }
+                        $index++;
+                    }
+//                    $this->_logger->addDebug(print_r($products, true));
+                }else{ //first login without connected firm
+                    $products = $this->_helper->getAdminConfig();
+                }
             }else{
                 $customerMenuSkus[] = explode(",",$customerMenu['product_mon']);
                 $customerMenuSkus[] = explode(",",$customerMenu['product_tue']);
@@ -63,14 +95,11 @@ class Menue extends \Magento\Framework\View\Element\Template{
                 $customerMenuSkus[] = explode(",",$customerMenu['product_thu']);
                 $customerMenuSkus[] = explode(",",$customerMenu['product_fri']);
 
-                $authDataToWP = $this->userValidate();
-                if(!empty($authDataToWP)){
+                if(!empty($authDataToWP)){ // login with connected firm
                     $wpCosumerKey = $authDataToWP['wp_cosumer_key'];
                     $wpCosumerSecret = $authDataToWP['wp_cosumer_secret'];
                     $wpShopUrl = $authDataToWP['wp_shop_url'];
                     $remoteSkus = $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
-//                    $this->_logger->addDebug("!!!!!!!!!!!!Remote SKUs!!!!!!!!!");
-//                    $this->_logger->addDebug(print_r($remoteSkus, true));
                     for ($i = 0; $i<5 ; $i++) {
                         $toAssignSku = null;
                         foreach ($customerMenuSkus[$i] as $currentMenuDataSku){
@@ -82,33 +111,55 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //                        $this->_logger->addDebug("Assigned to Index: ".$i);
 //                        $this->_logger->addDebug(print_r($toAssignSku, true));
                         if(empty($toAssignSku)){
-                            $products[] = $this->_helper->getAdminConfig()[$i];
+                            $products[] = $this->$remoteSkus[$i];
                         }else{
                             $products[] = $toAssignSku;
                         }
                     }
-//                    $this->_logger->addDebug("!!!!!!!!!!!!Load at end!!!!!!!!!");
-//                    $this->_logger->addDebug(print_r($products, true));
-                }else{
-                    //accouts which has data from talent, but not connected to WP (Free Registed User)
-//                    $this->_logger->addDebug(print_r('NO Connected', true));
+
+// ------------------------------------- new attempt start--------------------------------------------------------
+//                    $weekToList = array();
+//                    for ($i = 0; $i<5 ; $i++) {
+//                        $toDefaultSku = null;
+//                        $dayToList = array();
+//                        foreach ($customerMenuSkus[$i] as $currentMenuDataSku){
+//                            if(in_array($currentMenuDataSku, $remoteSkus)){
+//                                if(empty($toDefaultSku)){
+//                                    $toDefaultSku = $currentMenuDataSku;
+//                                }
+//                                $dayToList[] = $currentMenuDataSku;
+//                            }
+//                        }
+//                        $weekToList[] = $dayToList;
+//                        if(empty($toDefaultSku)){
+//                            $products[] = $this->_helper->getAdminConfig()[$i];
+//                        }else{
+//                            $products[] = $toDefaultSku;
+//                        }
+//                    }
+// ------------------------------------- new attempt end--------------------------------------------------------
+                }else{ // login without connected firm
                     for ($i = 0; $i<5 ; $i++) {
                         $products[] = $customerMenuSkus[$i][0];
                     }
                 }
             }
-        }else{
+        }else{ // Not login => free user
             $products = $this->_helper->getAdminConfig();
         }
         $html = '';
         $index = 1;
-        $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         $optionIds = array_keys($bundles);
         $optionIdIndex = 0;
 //            $this->_logger->addDebug(print_r($products, true));
         foreach ($products as $item) {
+            if($item === "NO_MATCH"){
+                $html .= $this->getHtml('Sorry', 0, '', '<b>Kein Gericht ist für den Tag verfügbar</b>', '', 'disable', $index, $optionIds[$optionIdIndex]);
+                $index++;
+                $optionIdIndex++;
+                continue;
+            }
             $product = $this->_productCollection->loadByAttribute('sku', $item);
-//            $this->_logger->addDebug($this->getUrl('pub/media/catalog').'product'.$product->getImage());
             $productName = $product->getName();
             $productPrice = $product->getPrice();
             $imgUrl = $this->getUrl('pub/media/catalog').'product'.$product->getImage();
@@ -180,7 +231,8 @@ class Menue extends \Magento\Framework\View\Element\Template{
     /*
      * load html wrapper for each product
      */
-    public function getHtml($name, $price, $priceClass, $description, $imgUrl, $sku, $index, $optionId){
+    public function getHtml($name, $price, $priceClass, $description,
+                            $imgUrl, $sku, $index, $optionId, $buttonStatus = '', $disableStyle = ''){
         $week = array(
             1 => 'Montag',
             2 => 'Dienstag',
@@ -188,10 +240,12 @@ class Menue extends \Magento\Framework\View\Element\Template{
             4 => 'Donnerstag',
             5 => 'Freitag'
         );
+        if($sku === 'disable'){$buttonStatus = 'disabled'; $disableStyle = 'background-color: grey';}
         $this->getChildBlock("ListProduct")->setPriceClass($priceClass);
         $this->getChildBlock("ListProduct")->setMenuIndex($index);
         $this->getChildBlock("ListProduct")->setOptionIdindex($optionId);
-        $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index.">
+        $this->_logger->addDebug(print_r($sku, true));
+        $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index." style='".$disableStyle."'>
                 <td class='menue_tag'>
                     <b>".$week[$index]."</b>
                 </td>
@@ -204,7 +258,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                         <span>".$description."</span>
                     </div>
                     <div>
-                        <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."' day='".$index."'>Austausch</button>
+                        <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."' day='".$index."' ".$buttonStatus.">Austausch</button>
                         <div class='list_container'>
                         ".$this->getChildHtml('ListProduct',false)."
                         </div>
@@ -214,7 +268,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     <span>".$price."&euro;</span>
                  </td>  
                  <td class='status'>
-                    <button class='status_button active' onclick='menuStatus(this)'>Disable</button>
+                    <button class='status_button active' onclick='menuStatus(this)' ".$buttonStatus.">Disable</button>
                  </td>
                </tr>";
         return $html;
