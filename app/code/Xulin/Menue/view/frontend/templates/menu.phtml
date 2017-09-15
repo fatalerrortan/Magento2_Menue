@@ -26,6 +26,9 @@ require(['jquery', 'jquery/ui'], function($) {
             jQuery("#product_diy_container table tr").each(function () {
                 var index = jQuery(this).attr('index');
                 order_container["var_" + index] = jQuery(this).attr("sku");
+                if(jQuery(this).attr("sku") === 'disable'){
+                    order_container.amount = order_container.amount + 1;
+                }
             });
         console.log(order_container);
     });
@@ -164,7 +167,7 @@ require(['jquery', 'jquery/ui'], function($) {
             var currentIndex =  $(element).parent().parent().attr('index');
             if (currentStatus){
                 if(order_container.amount >= 2){
-                    return alert('Sie sollten mindestens für drei Tage bestellen!');
+                    return alert('Sie sollten ESSEN mindestens für drei Tage bestellen!');
                 }
                 order_container.amount = order_container.amount + 1;
                 $(element).parent().parent().css("background-color", "grey");

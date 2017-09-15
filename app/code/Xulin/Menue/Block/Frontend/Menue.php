@@ -15,6 +15,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
     protected $_productCollection;
     protected $_customerSession;
     protected $_customerRepository;
+    protected $_currentUserStatus;
 //    public $_session_customer;
 
     /**
@@ -82,11 +83,13 @@ class Menue extends \Magento\Framework\View\Element\Template{
                                 $products[] = 'NO_MATCH';
                             }
                         }
+                        $this->_currentUserStatus = "FIRST_LOGIN_WITH_WP";
                         $index++;
                     }
 //                    $this->_logger->addDebug(print_r($products, true));
                 }else{ //first login without connected firm
                     $products = $this->_helper->getAdminConfig();
+                    $this->_currentUserStatus = "FIRST_LOGIN_WITHOUT_WP";
                 }
             }else{
                 $customerMenuSkus[] = explode(",",$customerMenu['product_mon']);
@@ -95,28 +98,49 @@ class Menue extends \Magento\Framework\View\Element\Template{
                 $customerMenuSkus[] = explode(",",$customerMenu['product_thu']);
                 $customerMenuSkus[] = explode(",",$customerMenu['product_fri']);
 
+//                $this->_logger->addDebug("Talent...............................................");
+//                $this->_logger->addDebug(print_r($customerMenuSkus, true));
+
                 if(!empty($authDataToWP)){ // login with connected firm
+                    $this->_currentUserStatus = "LOGIN_WITH_WP";
                     $wpCosumerKey = $authDataToWP['wp_cosumer_key'];
                     $wpCosumerSecret = $authDataToWP['wp_cosumer_secret'];
                     $wpShopUrl = $authDataToWP['wp_shop_url'];
                     $remoteSkus = $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
+
+//                    $this->_logger->addDebug("Remote SKUs...............................................");
+//                    $this->_logger->addDebug(print_r($remoteSkus, true));
+
                     for ($i = 0; $i<5 ; $i++) {
+//                        $this->_logger->addDebug("SKU from OptionIDs...............................................");
+//                        $optionIds = array_keys($bundles);
+//                        $this->_logger->addDebug(print_r(array_keys($bundles[$optionIds[$i]]), true));
                         $toAssignSku = null;
+                        $optionIds = array_keys($bundles);
                         foreach ($customerMenuSkus[$i] as $currentMenuDataSku){
                             if(in_array($currentMenuDataSku, $remoteSkus)){
                                 $toAssignSku = $currentMenuDataSku;
                                 break;
                             }
                         }
-//                        $this->_logger->addDebug("Assigned to Index: ".$i);
-//                        $this->_logger->addDebug(print_r($toAssignSku, true));
                         if(empty($toAssignSku)){
-                            $products[] = $this->$remoteSkus[$i];
+                            if(in_array($localDefaultSKus[$i], $remoteSkus)){
+                                $products[] = $localDefaultSKus[$i];
+                            }else{
+                                $skuToAssign = array_intersect($remoteSkus, array_keys($bundles[$optionIds[$i]]));
+                                if(!empty($skuToAssign)){
+                                    $products[] = current($skuToAssign);
+                                }else{
+                                    $products[] = 'NO_MATCH';
+
+                                }
+                            }
                         }else{
                             $products[] = $toAssignSku;
                         }
                     }
-
+//                    $this->_logger->addDebug("To Cart...............................................");
+//                    $this->_logger->addDebug(print_r($products, true));
 // ------------------------------------- new attempt start--------------------------------------------------------
 //                    $weekToList = array();
 //                    for ($i = 0; $i<5 ; $i++) {
@@ -139,6 +163,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //                    }
 // ------------------------------------- new attempt end--------------------------------------------------------
                 }else{ // login without connected firm
+                    $this->_currentUserStatus = "LOGIN_WITHOUT_WP";
                     for ($i = 0; $i<5 ; $i++) {
                         $products[] = $customerMenuSkus[$i][0];
                     }
@@ -146,6 +171,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
             }
         }else{ // Not login => free user
             $products = $this->_helper->getAdminConfig();
+            $this->_currentUserStatus = "NO_LOGIN";
         }
         $html = '';
         $index = 1;
@@ -153,19 +179,55 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $optionIdIndex = 0;
 //            $this->_logger->addDebug(print_r($products, true));
         foreach ($products as $item) {
-            if($item === "NO_MATCH"){
-                $html .= $this->getHtml('Sorry', 0, '', '<b>Kein Gericht ist für den Tag verfügbar</b>', '', 'disable', $index, $optionIds[$optionIdIndex]);
-                $index++;
-                $optionIdIndex++;
-                continue;
+            switch ($this->_currentUserStatus){
+                case "NO_LOGIN":
+                    $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
+                        "type" => "NO_LOGIN"
+                    ));
+                    break;
+                case "FIRST_LOGIN_WITHOUT_WP":
+                    $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
+                        "type" => "FIRST_LOGIN_WITHOUT_WP"
+                    ));
+                    break;
+                case "FIRST_LOGIN_WITH_WP":
+                    $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
+                        "type" => "FIRST_LOGIN_WITH_WP",
+                        "remote_skus" => $remoteSkus,
+                        'option_skus' => array_keys($bundles[$optionIds[$optionIdIndex]])
+                    ));
+                    break;
+                case "LOGIN_WITH_WP":
+                    $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
+                        "type" => "LOGIN_WITH_WP",
+                        "remote_skus" => $remoteSkus,
+                        "talent_skus" => $customerMenuSkus[$optionIdIndex],
+                        'option_skus' => array_keys($bundles[$optionIds[$optionIdIndex]])
+                    ));
+                    break;
+                case "LOGIN_WITHOUT_WP":
+                    $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
+                        "type" => "LOGIN_WITHOUT_WP",
+                        "talent_skus" => $customerMenuSkus[$optionIdIndex]
+                    ));
+                    break;
+                default:
+                    $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
+                        "type" => "NO_LOGIN"
+                    ));
+                    break;
             }
-            $product = $this->_productCollection->loadByAttribute('sku', $item);
-            $productName = $product->getName();
-            $productPrice = $product->getPrice();
-            $imgUrl = $this->getUrl('pub/media/catalog').'product'.$product->getImage();
-            $productShortDescription = $product->getShortDescription();
-            $priceClass = $product->getData('price_class');
-            $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index, $optionIds[$optionIdIndex]);
+            if($item === "NO_MATCH") {
+                $html .= $this->getHtml('Sorry', 0, '', '<b>Kein Gericht ist für den Tag verfügbar</b>', '', 'disable', $index, $optionIds[$optionIdIndex]);
+            }else{
+                $product = $this->_productCollection->loadByAttribute('sku', $item);
+                $productName = $product->getName();
+                $productPrice = $product->getPrice();
+                $imgUrl = $this->getUrl('pub/media/catalog').'product'.$product->getImage();
+                $productShortDescription = $product->getShortDescription();
+                $priceClass = $product->getData('price_class');
+                $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index, $optionIds[$optionIdIndex]);
+            }
             $index++;
             $optionIdIndex++;
         }
@@ -207,7 +269,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
     }
     /*
      * load in stock skus from remote wordpress
-     * @ return array
      */
     public function getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret){
         $woocommerce = new Client(
@@ -244,7 +305,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $this->getChildBlock("ListProduct")->setPriceClass($priceClass);
         $this->getChildBlock("ListProduct")->setMenuIndex($index);
         $this->getChildBlock("ListProduct")->setOptionIdindex($optionId);
-        $this->_logger->addDebug(print_r($sku, true));
         $html = "<tr sku='".$sku."' class='price_class_".$priceClass."' index=".$index." style='".$disableStyle."'>
                 <td class='menue_tag'>
                     <b>".$week[$index]."</b>
@@ -280,6 +340,10 @@ class Menue extends \Magento\Framework\View\Element\Template{
         if(isset($_SESSION['user_choose'])){
             return array_filter(explode(",", $_SESSION['user_choose']));
         }
+    }
+
+    public function assignActionToList($action=array()){
+
     }
     /*
      *  convert session params to json

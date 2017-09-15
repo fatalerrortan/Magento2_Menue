@@ -1,14 +1,14 @@
 <?php
 namespace Nextorder\Menue\Block\Frontend;
 
-class ListProduct extends \Magento\Catalog\Block\Product\ListProduct
-{
+class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
 
     protected $_customProductCollection;
     protected $_productFactory;
     public $_price_class;
     public $_menu_index;
     public $_optionIdIndex;
+    public $_currentUserStatus;
     protected $_logger;
     protected $_customerSession;
     protected $_modelMenudataFactory;
@@ -59,10 +59,14 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct
     public function setOptionIdIndex($optionIdIndex){
         return $this->_optionIdIndex = $optionIdIndex;
     }
+
+    public function setCurrentUserStatus($currentUserStatus = array()){
+        return $this->_currentUserStatus = $currentUserStatus;
+    }
     /*
     * get custom product collection
     */
-    public function getCustomCollection(){
+    public function getCustomCollection_outdated(){
 //        $this->_logger->addDebug(print_r($this->getIdAndOptionSkus('inc','optionSkus.txt'),true));
         if ($this->_customerSession->isLoggedIn())
         {
@@ -88,17 +92,65 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct
                 }
                 $productCollection = $this->_customProductCollection->create()->addAttributeToSelect('*')
                     ->addAttributeToFilter('sku', array('in' => $skus));
-            }else{
+            }else{ // first login i.e. without talent data
                 $arrayToFilter= array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
                 $productCollection = $this->_customProductCollection->create()
                     ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
             }
-        } else {
+        } else { // Not login => free user
             $arrayToFilter= array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
             $productCollection = $this->_customProductCollection->create()
                 ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
 //                ->addAttributeToFilter('price_class', $this->_price_class);
         }
+        return $productCollection;
+    }
+
+    public function getCustomCollection(){
+        $action = $this->_currentUserStatus;
+        $this->_logger->addDebug(print_r($action, true));
+//        $arrayToFilter = array();
+        switch ($action['type']) {
+            case "NO_LOGIN":
+                $productCollection = $this->loadLocalOptions();
+                break;
+            case "FIRST_LOGIN_WITHOUT_WP":
+                $productCollection = $this->loadLocalOptions();
+                break;
+            case "FIRST_LOGIN_WITH_WP":
+                $remoteSkus = $action["remote_skus"];
+                $optionSkus = $action["option_skus"];
+                $arrayToFilter = array_intersect($remoteSkus, $optionSkus);
+                $productCollection = $this->_customProductCollection->create()
+                    ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
+                break;
+            case "LOGIN_WITH_WP":
+                $remoteSkus = $action["remote_skus"];
+                $talentSkus = $action["talent_skus"];
+                $optionSkus = $action["option_skus"];
+                $arrayToFilter = array_intersect($remoteSkus, $talentSkus);
+                if(empty($arrayToFilter)){
+                    $arrayToFilter = array_intersect($remoteSkus, $optionSkus);
+                }
+                $productCollection = $this->_customProductCollection->create()
+                    ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
+                break;
+            case "LOGIN_WITHOUT_WP":
+                $talentSkus = $action["talent_skus"];
+                $productCollection = $this->_customProductCollection->create()
+                    ->addAttributeToFilter('sku', array('in' => $talentSkus));
+                break;
+            default:
+                $productCollection = $this->loadLocalOptions();
+                break;
+        }
+        return $productCollection;
+    }
+
+    public function loadLocalOptions(){
+        $arrayToFilter = array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
+        $productCollection = $this->_customProductCollection->create()
+            ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
         return $productCollection;
     }
     /*
