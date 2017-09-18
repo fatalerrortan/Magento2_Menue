@@ -1,14 +1,23 @@
 <?php ?>
-<h1>Auswählen Sie Speisen für 3, 4 oder 5 Tagen</h1>
-<!--<div id="product_option">-->
-<!--    <span>Bestimmten die Anzahl von Produkten</span>-->
-<!--    <select>-->
-<!--        <option value="5">5 Tage</option>-->
-<!--        <option value="4">4 Tage</option>-->
-<!--        <option value="3">3 Tage</option>-->
-<!--    </select>-->
-<!--</div>-->
-
+<h1 id="menu_week">Bestellen Sie Speisen für <b>die nächste Woche</b></h1>
+<h1><center>
+        <button class="gui_change_backwards" action="backwards" onclick="loadTargetGUI(this)">
+            <b style="color: blue"><     </b>
+        </button>
+        <b id="order_date">
+            <?php echo $this->getOrderDate(true)['begin'] ." Bis ". $this->getOrderDate(true)['end']; ?>
+        </b>
+        <button class="gui_change_forwards" action="forwards" onclick="loadTargetGUI(this)" style="display: none">
+            <b style="color: blue">     ></b>
+        </button>
+</center></h1>
+<?php
+//    echo "next week";
+//    print_r($this->getOrderDate(true));
+//
+//    echo "<br />current week";
+//    print_r($this->getOrderDate(false));
+//?>
 <div id="product_diy_container">
     <table border="1">
         <?php echo $this->loadProductHtmlBySku(); ?>
@@ -17,6 +26,8 @@
 </div>
 <script type="text/javascript">
     var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":""};
+    var gui_status = {status: 1};
+    var ordered_menu = null;
     var base_url = "<?php echo $this->getUrl(); ?>";
 // func for loading js container
 require(['jquery', 'jquery/ui'], function($) {
@@ -37,31 +48,6 @@ require(['jquery', 'jquery/ui'], function($) {
      */
     jQuery(".diy_button").click(function () {
         jQuery(this).parent().find("div.list_container div.product_list").slideToggle();
-    });
-    /*
-     load html wrapper(Product Block) with customer option
-     */
-    jQuery("#product_option select").change(function () {
-        var selected = jQuery(this).find("option:selected").val();
-        if (selected == '5') {
-            jQuery("#product_diy_container table tr").show();
-            order_container.amount = 5;
-//            console.log(order_container);
-        }
-        if (selected == '4') {
-            jQuery("#product_diy_container table tr[index='5']").hide();
-            jQuery("#product_diy_container table tr[index='4']").show();
-            order_container.var_5 = "";
-            order_container.amount = 4;
-//            console.log(order_container);
-        }
-        if (selected == '3') {
-            jQuery("#product_diy_container table tr[index='4'], #product_diy_container table tr[index='5']").hide();
-            order_container.var_4 = "";
-            order_container.var_5 = "";
-            order_container.amount = 3;
-//            console.log(order_container);
-        }
     });
     /*
      update json "order container" when loading new product
@@ -193,6 +179,50 @@ require(['jquery', 'jquery/ui'], function($) {
             }
         });
     }
+    
+    function loadTargetGUI(element) {
+        require(['jquery', 'jquery/ui'], function($) {
+            var currentGuiStatus = gui_status.status;
+            var currentAction = $(element).attr("action");
+            if(currentAction === "forwards"){
+                var newStatus = currentGuiStatus + 1;
+            }else{
+                var newStatus = currentGuiStatus - 1;
+            }
+            if(newStatus === 0){ // route to view the orders from the last week
+                // save ordered menu before routing
+                ordered_menu = $("#product_diy_container").html();
+                $("#menu_week").html("Sie haben für <b>diese Woche</b> bestellt");
+                $("#order_date").html("<?php echo $this->getOrderDate(false)['begin'] ." Bis ". $this->getOrderDate(false)['end']; ?>");
+                $("button.gui_change_backwards").hide();
+                $("button.gui_change_forwards").show();
+                var postData = new FormData();
+                postData.append("begin", "<?php echo $this->getOrderDate(false)['begin']; ?>");
+                postData.append("end", "<?php echo $this->getOrderDate(false)['end']; ?>");
+                $.ajax({
+                    type: "POST",
+                    url: base_url+"menue/index/order",
+                    data: postData,
+                    contentType: false,
+                    processData: false,
+                    dataType: "text",
+                success: function(data){
+                    $("#product_diy_container").html("<h1>"+data+"</h1>");
+                }
+                });
+                gui_status.status = 0;
+            }else if(newStatus === 1){ // route to view for the next week
+                $("#menu_week").html("Bestellen Sie Speisen für <b>die nächste Woche</b>");
+                $("#order_date").html("<?php echo $this->getOrderDate(true)['begin'] ." Bis ". $this->getOrderDate(true)['end']; ?>");
+                $("#product_diy_container").html(ordered_menu);
+                $("button.gui_change_backwards").show();
+                $("button.gui_change_forwards").hide();
+                gui_status.status = 1;
+            }else{
+                return false;
+            }
+        });
+        }
 </script>
 
 

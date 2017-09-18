@@ -6,47 +6,33 @@ use Magento\Framework\App\Action\Context;
 
 class Order extends \Magento\Framework\App\Action\Action{
 
-    protected $_cart;
     protected $_productRepository;
     protected $_logger;
-//    protected $_resultJsonFactory;
+    protected $_customerSession;
+    protected $_orderFactory;
 
     public function __construct(
         Context $context,
-        \Magento\Checkout\Model\Cart $cart,
         \Magento\Catalog\Model\ProductRepository $productRepository,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Customer\Model\Session $customerSession,
+        \Nextorder\Subaccounts\Model\OrderFactory $orderFactory
     ){
-        $this->_cart = $cart;
         $this->_productRepository = $productRepository;
         $this->_logger = $logger;
+        $this->_customerSession = $customerSession;
+        $this->_orderFactory = $orderFactory;
         parent::__construct($context);
     }
 
     public function execute(){
-        echo 'test';
-//        if ($this->getRequest()->getParam("menu_orders")){
-//            echo "123";
-//        }
+        $begin = $this->getRequest()->getParam("begin");
+        $end = $this->getRequest()->getParam("end");
+        $orderCollection = $this->_orderFactory->create()->getCollection()
+            ->addFieldToFilter('customer_id', array('eq' => array($this->_customerSession->getCustomerId())));
+//            ->addFieldToFilter('created_at', array('lt' => array($begin)));
+        foreach ($orderCollection as $order){
+            $this->_logger->addDebug(print_r($order->getData(), true));
+        }
     }
-
-//    protected function addProductsInCart(){
-//        $params = [
-//            'product' => 7,
-//            'related_product' => null,
-//            'bundle_option' => [
-////                1 => "19",
-////                2 => "20",
-//                3 => "21",
-//                4 => "22",
-//                5 => "23",
-////                6 => "24",
-//            ],
-//            'qty' => 1
-//        ];
-//        $product = $this->_productRepository->getById("7");
-//        $this->_cart->addProduct($product,$params);
-//        $this->_cart->save();
-//        return true;
-//    }
 }

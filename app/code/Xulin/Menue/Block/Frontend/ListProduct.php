@@ -66,49 +66,9 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     /*
     * get custom product collection
     */
-    public function getCustomCollection_outdated(){
-//        $this->_logger->addDebug(print_r($this->getIdAndOptionSkus('inc','optionSkus.txt'),true));
-        if ($this->_customerSession->isLoggedIn())
-        {
-            $menudataModel = $this->_modelMenudataFactory->create();
-            $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
-            if(!empty($customerMenu)){
-                switch ($this->_menu_index) {
-                    case 1:
-                        $skus = explode(",",$customerMenu['product_mon']);
-                        break;
-                    case 2:
-                        $skus = explode(",",$customerMenu['product_tue']);
-                        break;
-                    case 3:
-                        $skus = explode(",",$customerMenu['product_wed']);
-                        break;
-                    case 4:
-                        $skus = explode(",",$customerMenu['product_thu']);
-                        break;
-                    case 5:
-                        $skus = explode(",",$customerMenu['product_fri']);
-                        break;
-                }
-                $productCollection = $this->_customProductCollection->create()->addAttributeToSelect('*')
-                    ->addAttributeToFilter('sku', array('in' => $skus));
-            }else{ // first login i.e. without talent data
-                $arrayToFilter= array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
-                $productCollection = $this->_customProductCollection->create()
-                    ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
-            }
-        } else { // Not login => free user
-            $arrayToFilter= array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
-            $productCollection = $this->_customProductCollection->create()
-                ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
-//                ->addAttributeToFilter('price_class', $this->_price_class);
-        }
-        return $productCollection;
-    }
-
     public function getCustomCollection(){
         $action = $this->_currentUserStatus;
-        $this->_logger->addDebug(print_r($action, true));
+//        $this->_logger->addDebug(print_r($action, true));
 //        $arrayToFilter = array();
         switch ($action['type']) {
             case "NO_LOGIN":

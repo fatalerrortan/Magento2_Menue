@@ -161,7 +161,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //                            $products[] = $toDefaultSku;
 //                        }
 //                    }
-// ------------------------------------- new attempt end--------------------------------------------------------
+// ------------------------------------- new attempt end-------------------------------------------------------
                 }else{ // login without connected firm
                     $this->_currentUserStatus = "LOGIN_WITHOUT_WP";
                     for ($i = 0; $i<5 ; $i++) {
@@ -342,16 +342,21 @@ class Menue extends \Magento\Framework\View\Element\Template{
         }
     }
 
-    public function assignActionToList($action=array()){
-
+    public function getOrderDate($nextWeek = true){
+        $dayOfWeekId = date('w');
+        $spreadToNextWeek = 5 - $dayOfWeekId;
+        if($nextWeek){
+            // for next week
+            $beginWeek = time() + (($spreadToNextWeek + 3) * 24 * 60 * 60);
+            $endWeek = $beginWeek + (4 * 24 * 60 * 60);
+        }else{
+            // for this week
+            $beginWeek = time() - (($dayOfWeekId - 1) * 24 * 60 * 60);
+            $endWeek = $beginWeek + (4 * 24 * 60 * 60);
+        }
+        return array(
+            'begin' => date('Y-m-d', $beginWeek),
+            'end' => date('Y-m-d', $endWeek)
+        );
     }
-    /*
-     *  convert session params to json
-     */
-//    public function getSessionParam(){
-//
-//        foreach ($this->_session_customer as $session){
-//
-//        }
-//    }
 }

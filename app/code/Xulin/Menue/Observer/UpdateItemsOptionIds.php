@@ -63,11 +63,6 @@ class UpdateItemsOptionIds implements ObserverInterface{
            mkdir($moduleDir,0777);
        }
         file_put_contents($moduleDir."/".$file, serialize($this->_bundleDataSource));
-//       if($flag){
-//           file_put_contents($moduleDir."/".$file, serialize($this->_bundleSKus));
-//       }else{
-//           file_put_contents($moduleDir."/".$file, serialize($this->_toCartConfig));
-//       }
         return true;
     }
 }
