@@ -356,7 +356,9 @@ class Menue extends \Magento\Framework\View\Element\Template{
         }
         return array(
             'begin' => date('Y-m-d', $beginWeek),
-            'end' => date('Y-m-d', $endWeek)
+            'end' => date('Y-m-d', $endWeek),
+            'raw_begin' => $beginWeek,
+            'raw_end' => $endWeek
         );
     }
 }

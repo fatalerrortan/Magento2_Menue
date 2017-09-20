@@ -41,7 +41,7 @@ class UpdateItemsOptionIds implements ObserverInterface{
             $bundleDataSource[$optionID][$sku] = $selectionID;
         }
         $this->_bundleDataSource = $bundleDataSource;
-
+//        $this->_logger->addDebug(print_r($this->_bundleDataSource, true));
         return $this->save('inc','bundleDataSource.txt');
     }
     /*
