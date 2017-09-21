@@ -39,7 +39,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
     public function execute(){
         if ($this->getRequest()->getParam("menu_orders")){
             $menu_orders_skus = explode(",", $this->getRequest()->getParam("menu_orders"));
-            $this->_logger->addDebug(print_r($menu_orders_skus, true));
+//            $this->_logger->addDebug(print_r($menu_orders_skus, true));
             if($this->addProductsInCart($menu_orders_skus)){echo "worked";}
         }
     }
@@ -91,7 +91,7 @@ class Cart extends \Magento\Framework\App\Action\Action{
         }
 
         $params['qty'] = $filter->filter($params['qty']);
-        $this->_logger->addDebug(print_r($params, true));
+//        $this->_logger->addDebug(print_r($params, true));
         $this->_cart->addProduct($bundleProduct,$params);
         $this->_cart->save();
         $this->_eventManager->dispatch(

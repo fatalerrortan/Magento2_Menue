@@ -13,7 +13,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
     protected $_logger;
     public $_helper;
     protected $_productCollection;
-    protected $_customerSession;
+    public $_customerSession;
     protected $_customerRepository;
     protected $_currentUserStatus;
 //    public $_session_customer;

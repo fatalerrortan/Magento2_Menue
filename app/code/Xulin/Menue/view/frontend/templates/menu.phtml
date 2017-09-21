@@ -24,7 +24,6 @@
 // func for loading js container
 require(['jquery', 'jquery/ui'], function($) {
     jQuery(document).ready(function () {
-//        var session = "<?php //echo $this->_customerSession; ?>//";
 //        if(session.length == 0) {
             jQuery("#product_diy_container table tr").each(function () {
                 var index = jQuery(this).attr('index');
@@ -33,6 +32,10 @@ require(['jquery', 'jquery/ui'], function($) {
                     order_container.amount = order_container.amount + 1;
                 }
             });
+        var customerId = '<?php echo $this->_customerSession->getCustomerId(); ?>';
+        if(customerId === ""){
+            $("button[class*='gui_change_']").hide();
+        }
         console.log(order_container);
     });
     /*
