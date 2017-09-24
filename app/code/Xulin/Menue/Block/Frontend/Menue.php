@@ -3,6 +3,7 @@ namespace Nextorder\Menue\Block\Frontend;
 
 use Nextorder\MenuData\Model\MenudataFactory;
 use Automattic\WooCommerce\Client;
+use Automattic\WooCommerce\HttpClient\HttpClientException;
 
 class Menue extends \Magento\Framework\View\Element\Template{
 
@@ -271,18 +272,28 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * load in stock skus from remote wordpress
      */
     public function getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret){
+//        $this->_logger->addDebug(print_r($wpShopUrl, true));
+//        $this->_logger->addDebug(print_r($wpCosumerKey, true));
+//        $this->_logger->addDebug(print_r($wpCosumerSecret, true));
         $woocommerce = new Client(
             $wpShopUrl,
             $wpCosumerKey,
             $wpCosumerSecret,
             [
-                'wp_api' => true,
-                'version' => 'wc/v1'
+//                'wp_api' => true,
+//                'version' => 'wc/v1'
             ]
         );
         $remoteSkus = array();
-        $remoteProducts = $woocommerce->get('products');
-        foreach ($remoteProducts as $product){
+        try{
+            $remoteProducts = $woocommerce->get('products');
+        }catch (HttpClientException $e){
+            $this->_logger->addDebug(print_r($e->getRequest(), true));
+            $this->_logger->addDebug(print_r($e->getResponse(), true));
+        }
+//        $this->_logger->addDebug(print_r($remoteProducts, true));
+        foreach ($remoteProducts['products']as $product){
+//            $this->_logger->addDebug(print_r($product, true));
             if($product['in_stock']){
                 $remoteSkus[] = $product['sku'];
             }
