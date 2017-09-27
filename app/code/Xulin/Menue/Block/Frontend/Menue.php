@@ -66,13 +66,13 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //                    $this->_logger->addDebug(print_r($remoteSkus, true));
                     $index = 0;
                     foreach ($localDefaultSKus as $localDefaultSKu){
-                        if(in_array($localDefaultSKu, $remoteSkus)){
+                        if(in_array($localDefaultSKu, $remoteSkus['in_stock'])){
                             $products[] = $localDefaultSKu;
                         }else{
                             $optionIds = array_keys($bundles);
                             $skuToAssign = null;
 //                            $this->_logger->addDebug(print_r(array_keys($bundles[$optionIds[$index]]), true));
-                            foreach($remoteSkus as $remoteSku){
+                            foreach($remoteSkus['in_stock'] as $remoteSku){
                                 if(in_array($remoteSku, array_keys($bundles[$optionIds[$index]]))){
                                     $skuToAssign = $remoteSku;
                                     break;
@@ -119,16 +119,16 @@ class Menue extends \Magento\Framework\View\Element\Template{
                         $toAssignSku = null;
                         $optionIds = array_keys($bundles);
                         foreach ($customerMenuSkus[$i] as $currentMenuDataSku){
-                            if(in_array($currentMenuDataSku, $remoteSkus)){
+                            if(in_array($currentMenuDataSku, $remoteSkus['in_stock'])){
                                 $toAssignSku = $currentMenuDataSku;
                                 break;
                             }
                         }
                         if(empty($toAssignSku)){
-                            if(in_array($localDefaultSKus[$i], $remoteSkus)){
+                            if(in_array($localDefaultSKus[$i], $remoteSkus['in_stock'])){
                                 $products[] = $localDefaultSKus[$i];
                             }else{
-                                $skuToAssign = array_intersect($remoteSkus, array_keys($bundles[$optionIds[$i]]));
+                                $skuToAssign = array_intersect($remoteSkus['in_stock'], array_keys($bundles[$optionIds[$i]]));
                                 if(!empty($skuToAssign)){
                                     $products[] = current($skuToAssign);
                                 }else{
@@ -294,10 +294,12 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //        $this->_logger->addDebug(print_r($remoteProducts, true));
         foreach ($remoteProducts['products']as $product){
 //            $this->_logger->addDebug(print_r($product, true));
+            $remoteSkus['all'][] = $product['sku'];
             if($product['in_stock']){
-                $remoteSkus[] = $product['sku'];
+                $remoteSkus['in_stock'][] = $product['sku'];
             }
         }
+        $this->_logger->addDebug(print_r($remoteSkus, true));
         return $remoteSkus;
     }
     /*
@@ -329,7 +331,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                         <span>".$description."</span>
                     </div>
                     <div>
-                        <button class='diy_button action primary' index='".$index."' price_class='".$priceClass."' day='".$index."' ".$buttonStatus.">Austausch</button>
+                        <button class='diy_button action primary' onclick='menuChange(this)' index='".$index."' price_class='".$priceClass."' day='".$index."' ".$buttonStatus.">Austausch</button>
                         <div class='list_container'>
                         ".$this->getChildHtml('ListProduct',false)."
                         </div>

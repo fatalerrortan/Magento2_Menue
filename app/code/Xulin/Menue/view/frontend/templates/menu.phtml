@@ -22,9 +22,9 @@
     var ordered_menu = null;
     var base_url = "<?php echo $this->getUrl(); ?>";
 // func for loading js container
-require(['jquery', 'jquery/ui'], function($) {
+require(['jquery'], function($) {
     jQuery(document).ready(function () {
-//        if(session.length == 0) {
+//        if(session.length == 0 ) {
             jQuery("#product_diy_container table tr").each(function () {
                 var index = jQuery(this).attr('index');
                 order_container["var_" + index] = jQuery(this).attr("sku");
@@ -37,12 +37,6 @@ require(['jquery', 'jquery/ui'], function($) {
             $("button[class*='gui_change_']").hide();
         }
         console.log(order_container);
-    });
-    /*
-     Add iframe to choose target product
-     */
-    jQuery(".diy_button").click(function () {
-        jQuery(this).parent().find("div.list_container div.product_list").slideToggle();
     });
     /*
      update json "order container" when loading new product
@@ -85,18 +79,7 @@ require(['jquery', 'jquery/ui'], function($) {
             }
         });
     });
-    /*
-     get params from user choosed to load new product in menu
-     */
-    jQuery("button.choose_variant").click(function () {
-        var sku = jQuery(this).find("input.sku").val();
-        var name = jQuery(this).find("input.name").val()
-        var description = jQuery(this).find("input.description").val();
-        var img = jQuery(this).find("input.img").val();
-        var price = jQuery(this).find("input.price").val();
-        var position = jQuery(this).find("input.menu_index").val();
-        load_new_var_product(sku, name, description, price, img, position);
-    });
+
     /*
     save tmp user choose in Session
      */
@@ -124,10 +107,8 @@ require(['jquery', 'jquery/ui'], function($) {
      load new product in menu block
      */
     function load_new_var_product(sku, name, description, price, img, position) {
-        require(['jquery', 'jquery/ui'], function($){
-//             console.log(sku+" and "+name+" and "+description+" and "+price+" and "+img+" and "+position);
+        require(['jquery'], function($){
         var target_block = jQuery("tr[index='"+position+"']");
-//            console.log(target_block.attr('index'));
             target_block.attr("sku",sku);
             target_block.find("td.img_container img").attr(
                 {
@@ -143,7 +124,7 @@ require(['jquery', 'jquery/ui'], function($) {
     }
 
     function menuStatus(element) {
-        require(['jquery', 'jquery/ui'], function($) {
+        require(['jquery'], function($) {
             var currentStatus = $(element).hasClass('active');
             var currentIndex =  $(element).parent().parent().attr('index');
             if (currentStatus){
@@ -174,9 +155,17 @@ require(['jquery', 'jquery/ui'], function($) {
             }
         });
     }
-    
+
+    function menuChange(element) {
+        require(['jquery'], function($) {
+            jQuery(element).parent().find("div.list_container div.product_list").slideToggle();
+        });
+    }
+
     function loadTargetGUI(element) {
-        require(['jquery', 'jquery/ui'], function($) {
+        require(['jquery'], function($) {
+//            $(element).applyBindings();
+            var loading = "<center><img src='<?php echo $this->getViewFileUrl('Nextorder_Menue::img/loading.gif'); ?>' alt='loading' style='width: 200px'/></center>";
             var currentGuiStatus = gui_status.status;
             var currentAction = $(element).attr("action");
             if(currentAction === "forwards"){
@@ -187,6 +176,7 @@ require(['jquery', 'jquery/ui'], function($) {
             if(newStatus === 0){ // route to view the orders from the last week
                 // save ordered menu before routing
                 ordered_menu = $("#product_diy_container").html();
+                $("#product_diy_container").html(loading);
                 $("#menu_week").html("Sie haben für <b>diese Woche</b> bestellt");
                 $("#order_date").html("<?php echo $this->getOrderDate(false)['begin'] ." Bis ". $this->getOrderDate(false)['end']; ?>");
                 $("button.gui_change_backwards").hide();
@@ -202,13 +192,12 @@ require(['jquery', 'jquery/ui'], function($) {
                     processData: false,
                     dataType: "text",
                 success: function(data){
-                    var vDom = $("<html></html>").html(data);
-                    var tableBody = vDom.find("table").html();
-                    $("#product_diy_container").html("<table border='1'>"+tableBody+"</table>");
+                    $("#product_diy_container").html($.parseHTML(data));
                 }
                 });
                 gui_status.status = 0;
             }else if(newStatus === 1){ // route to view for the next week
+                $("#product_diy_container").html(loading);
                 $("#menu_week").html("Bestellen Sie Speisen für <b>die nächste Woche</b>");
                 $("#order_date").html("<?php echo $this->getOrderDate(true)['begin'] ." Bis ". $this->getOrderDate(true)['end']; ?>");
                 $("#product_diy_container").html(ordered_menu);
@@ -219,6 +208,19 @@ require(['jquery', 'jquery/ui'], function($) {
                 return false;
             }
         });
+    }
+
+        function chooseVariant(element) {
+            require(['jquery'], function($) {
+                var sku = jQuery(element).find("input.sku").val();
+                var name = jQuery(element).find("input.name").val()
+                var description = jQuery(element).find("input.description").val();
+                var img = jQuery(element).find("input.img").val();
+                var price = jQuery(element).find("input.price").val();
+                var position = jQuery(element).find("input.menu_index").val();
+                order_container["var_" + position] = sku;
+                load_new_var_product(sku, name, description, price, img, position);
+            });
         }
 </script>
 

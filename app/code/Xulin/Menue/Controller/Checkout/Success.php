@@ -82,7 +82,7 @@ class Success extends Action
      */
     public function execute()
     {
-        ini_set('memory_limit', '-1');
+//        ini_set('memory_limit', '-1');
         try {
             $order = $this->_objectManager->create('Nextorder\Subaccounts\Model\Order');
             $subPermissions = $this->subacchelper->retrieveSubPermissions();

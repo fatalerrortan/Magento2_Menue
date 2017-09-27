@@ -13,6 +13,7 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     protected $_customerSession;
     protected $_modelMenudataFactory;
     public $_helper;
+    public $_in_stock;
 
     public function __construct(
         \Magento\Catalog\Block\Product\Context $context,
@@ -78,14 +79,16 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
                 $productCollection = $this->loadLocalOptions();
                 break;
             case "FIRST_LOGIN_WITH_WP":
-                $remoteSkus = $action["remote_skus"];
+                $remoteSkus = $action["remote_skus"]['all'];
                 $optionSkus = $action["option_skus"];
+                $this->_in_stock = $action["remote_skus"]['in_stock'];
                 $arrayToFilter = array_intersect($remoteSkus, $optionSkus);
                 $productCollection = $this->_customProductCollection->create()
                     ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
                 break;
             case "LOGIN_WITH_WP":
-                $remoteSkus = $action["remote_skus"];
+                $remoteSkus = $action["remote_skus"]['all'];
+                $this->_in_stock = $action["remote_skus"]['in_stock'];
                 $talentSkus = $action["talent_skus"];
                 $optionSkus = $action["option_skus"];
                 $arrayToFilter = array_intersect($remoteSkus, $talentSkus);

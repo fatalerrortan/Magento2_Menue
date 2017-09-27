@@ -73,6 +73,17 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                         </strong>
                         <?php echo $block->getReviewsSummaryHtml($_product, $templateType); ?>
                         <?php /* @escapeNotVerified */ echo $block->getProductPrice($_product) ?>
+
+                        <?php
+                            $in_stock = $this->_in_stock;
+                        if(!empty($in_stock)){
+                            echo in_array($product->getSku(), $in_stock) ?
+                                "<span style='color: green'>Bereits Im Essbar</span>"
+                                :
+                                "<span style='color: #2654B5'>Nachbestellen</span>";
+                        }
+                        ?>
+
                         <?php echo $block->getProductDetailsHtml($_product); ?>
 
                         <div class="product-item-inner">
@@ -80,8 +91,8 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                                 <div class="actions-primary"<?php echo strpos($pos, $viewMode . '-primary') ? $position : ''; ?>>
                                     <?php if ($_product->isSaleable()): ?>
                                         <?php $postParams = $block->getAddToCartPostParams($_product); ?>
-                                        <form data-role="tocart-form">
-                                            <button class="action primary choose_variant">
+<!--                                        <form data-role="tocart-form">-->
+                                            <button class="action primary choose_variant" onclick="chooseVariant(this)">
                                                 <span><?php /* @escapeNotVerified */ echo __('Auswahlen') ?></span>
                                                 <input type="hidden" class="sku" value="<?php echo $_product->getSku() ?>" />
                                                 <input type="hidden" class="name" value="<?php echo $_product->getName() ?>" />
@@ -90,7 +101,7 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                                                 <input type="hidden" class="price" value="<?php echo $_product->getPrice() ?>" />
                                                 <input type="hidden" class="menu_index" value="<?php echo $this->_menu_index ?>" />
                                             </button>
-                                        </form>
+<!--                                        </form>-->
                                     <?php else: ?>
                                         <?php if ($_product->getIsSalable()): ?>
                                             <div class="stock available"><span><?php /* @escapeNotVerified */ echo __('In stock') ?></span></div>
