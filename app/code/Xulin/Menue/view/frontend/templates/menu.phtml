@@ -177,13 +177,14 @@ require(['jquery'], function($) {
                 // save ordered menu before routing
                 ordered_menu = $("#product_diy_container").html();
                 $("#product_diy_container").html(loading);
-                $("#menu_week").html("Sie haben für <b>diese Woche</b> bestellt");
+                $("#menu_week").html("");
                 $("#order_date").html("<?php echo $this->getOrderDate(false)['begin'] ." Bis ". $this->getOrderDate(false)['end']; ?>");
                 $("button.gui_change_backwards").hide();
                 $("button.gui_change_forwards").show();
                 var postData = new FormData();
                 postData.append("begin", "<?php echo $this->getOrderDate(false)['raw_begin']; ?>");
                 postData.append("end", "<?php echo $this->getOrderDate(false)['raw_end']; ?>");
+                postData.append("skus_in_stock", "<?php echo $this->_inStockSkus; ?>");
                 $.ajax({
                     type: "POST",
                     url: base_url+"menue/index/order",
@@ -210,7 +211,7 @@ require(['jquery'], function($) {
         });
     }
 
-        function chooseVariant(element) {
+    function chooseVariant(element) {
             require(['jquery'], function($) {
                 var sku = jQuery(element).find("input.sku").val();
                 var name = jQuery(element).find("input.name").val()
@@ -221,7 +222,22 @@ require(['jquery'], function($) {
                 order_container["var_" + position] = sku;
                 load_new_var_product(sku, name, description, price, img, position);
             });
-        }
+    }
+
+    function guiChange(element) {
+        require(['jquery'], function($) {
+            switch ($(element).val()){
+                case 'last':
+                    $("#in_essbar").hide();
+                    $("#last_order").toggle('show');
+                    break;
+                case 'live':
+                    $("#last_order").hide();
+                    $("#in_essbar").toggle('show');
+                    break;
+            }
+        });
+    }
 </script>
 
 

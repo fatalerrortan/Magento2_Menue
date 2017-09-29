@@ -17,6 +17,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
     public $_customerSession;
     protected $_customerRepository;
     protected $_currentUserStatus;
+    public $_inStockSkus;
 //    public $_session_customer;
 
     /**
@@ -291,15 +292,13 @@ class Menue extends \Magento\Framework\View\Element\Template{
             $this->_logger->addDebug(print_r($e->getRequest(), true));
             $this->_logger->addDebug(print_r($e->getResponse(), true));
         }
-//        $this->_logger->addDebug(print_r($remoteProducts, true));
         foreach ($remoteProducts['products']as $product){
-//            $this->_logger->addDebug(print_r($product, true));
             $remoteSkus['all'][] = $product['sku'];
             if($product['in_stock']){
                 $remoteSkus['in_stock'][] = $product['sku'];
             }
         }
-        $this->_logger->addDebug(print_r($remoteSkus, true));
+        $this->_inStockSkus = implode(",",$remoteSkus['in_stock']);
         return $remoteSkus;
     }
     /*

@@ -8,7 +8,7 @@ use Magento\Framework\App\Action\Action;
 // @codingStandardsIgnoreFile
 
 ?>
-<div class="product_list" style="display: none">
+<div class="product_list">
 <?php
 /**
  * Product list template
@@ -76,7 +76,7 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                             $in_stock = $this->_in_stock;
                             if(!empty($in_stock)){
                                 echo in_array($_product->getSku(), $in_stock) ?
-                                ""
+                                "<span style='color: green'>Bereits Im Essbar</span>"
                                 :
                                 "<span style='color: #2654B5'>Nachbestellen</span>";
                             }
@@ -95,7 +95,6 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                                                 <input type="hidden" class="description" value="<?php echo str_replace('"','',strip_tags($_product->getShortDescription())) ?>" />
                                                 <input type="hidden" class="img" value="<?php echo $this->getUrl('pub/media/catalog')."product".$_product->getImage() ?>" />
                                                 <input type="hidden" class="price" value="<?php echo $_product->getPrice() ?>" />
-                                                <input type="hidden" class="menu_index" value="<?php echo $this->_menu_index ?>" />
                                             </button>
 <!--                                        </form>-->
                                     <?php else: ?>

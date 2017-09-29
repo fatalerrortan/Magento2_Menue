@@ -4,12 +4,12 @@ namespace Nextorder\Menue\Block\Frontend;
 class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
 
     protected $_customProductCollection;
-    protected $_productFactory;
+//    protected $_productFactory;
     public $_price_class;
     public $_menu_index;
     public $_optionIdIndex;
     public $_currentUserStatus;
-    protected $_logger;
+    public $_logger;
     protected $_customerSession;
     protected $_modelMenudataFactory;
     public $_helper;
@@ -24,15 +24,15 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
         \Magento\Customer\Model\Session $customerSession,
         \Nextorder\MenuData\Model\MenudataFactory $modelMenudataFactory,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollection,
-        \Magento\Catalog\Model\ProductFactory $productFactory, //product Factory injection
+//        \Magento\Catalog\Model\ProductFactory $productFactory,
         \Psr\Log\LoggerInterface $logger,
-        \Nextorder\Menue\Helper\Data $helper, //helper injection
+        \Nextorder\Menue\Helper\Data $helper,
         array $data = []
     ) {
         $this->_customerSession = $customerSession;
         $this->_modelMenudataFactory = $modelMenudataFactory;
         $this->_customProductCollection = $productCollection;
-        $this->_productFactory = $productFactory->create();
+//        $this->_productFactory = $productFactory->create();
         $this->_logger = $logger;
         $this->_helper = $helper;
         parent::__construct(
@@ -84,6 +84,7 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
                 $this->_in_stock = $action["remote_skus"]['in_stock'];
                 $arrayToFilter = array_intersect($remoteSkus, $optionSkus);
                 $productCollection = $this->_customProductCollection->create()
+                    ->addAttributeToSelect('*')
                     ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
                 break;
             case "LOGIN_WITH_WP":
@@ -96,11 +97,13 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
                     $arrayToFilter = array_intersect($remoteSkus, $optionSkus);
                 }
                 $productCollection = $this->_customProductCollection->create()
+                    ->addAttributeToSelect('*')
                     ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
                 break;
             case "LOGIN_WITHOUT_WP":
                 $talentSkus = $action["talent_skus"];
                 $productCollection = $this->_customProductCollection->create()
+                    ->addAttributeToSelect('*')
                     ->addAttributeToFilter('sku', array('in' => $talentSkus));
                 break;
             default:
@@ -113,13 +116,12 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     public function loadLocalOptions(){
         $arrayToFilter = array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
         $productCollection = $this->_customProductCollection->create()
+            ->addAttributeToSelect('*')
             ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
         return $productCollection;
     }
-    /*
-    * get single product object from the custom collection
-    */
-    public function getCustomSingleProduct($sku){
-     return  $this->_productFactory->loadByAttribute('sku', $sku);
-    }
+
+//    public function getCustomSingleProduct($sku){
+//        return  $this->_productFactory->loadByAttribute('sku', $sku);
+//    }
 }
