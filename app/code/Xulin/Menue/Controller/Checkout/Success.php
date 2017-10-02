@@ -120,19 +120,20 @@ class Success extends Action
                     $this->_logger->debug(print_r($itemOrder, true));
                 }else{
                     $deliveryDate = array_search($cartItem->getSku(), $itemOrder);
-                    $this->_logger->debug(print_r($deliveryDate, true));
+//                    $this->_logger->debug(print_r($deliveryDate, true));
                     $item->setDeliveryDate($deliveryDate);
                     unset($itemOrder[$deliveryDate]);
                 }
                 $item->save();
+                //remove cart item
+                $itemId = $cartItem->getItemId();
+                $this->_cart->removeItem($itemId)->save();
             }
 
-            $this->_cart->truncate();
             $this->messageManager->addSuccessMessage(__('Your Sub-Account order was sucessfully placed.'));
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__($e->getMessage()));
         }
-
         $resultPage = $this->resultPageFactory->create();
         return $resultPage;
     }

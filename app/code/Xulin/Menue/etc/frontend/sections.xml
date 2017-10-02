@@ -4,4 +4,7 @@
     <action name="menue/index/cart">
         <section name="cart"/>
     </action>
+    <action name="menue/checkout/success">
+        <section name="cart"/>
+    </action>
 </config>
