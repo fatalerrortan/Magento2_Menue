@@ -25,6 +25,20 @@ class Variant extends \Magento\Framework\App\Action\Action
 //        echo $this->_helper->getAdminConfig()[1];
         echo 'test!!!';
         $resultPage = $this->_resultPageFactory->create();
-        return $resultPage;
+//        return $resultPage;
+        $Muskelaufbau = [
+            0 => [
+                'item' => 'rindfleisch',
+                'amount' => 3
+            ],
+            1 => [
+                'item' => 'eier',
+                'amount' => 2
+            ],
+            2 => [
+                'item' => 'salat',
+                'amount' => 2
+            ]
+        ];
     }
 }

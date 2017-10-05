@@ -18,6 +18,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
     protected $_customerRepository;
     protected $_currentUserStatus;
     public $_inStockSkus;
+    public $_isloggedIn = false;
 //    public $_session_customer;
 
     /**
@@ -56,6 +57,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $localDefaultSKus = $this->_helper->getAdminConfig();
         $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         if ($this->_customerSession->isLoggedIn()) {
+            $this->_isloggedIn = true;
             $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
             $authDataToWP = $this->userValidate();
             if(empty($customerMenu)){//first login

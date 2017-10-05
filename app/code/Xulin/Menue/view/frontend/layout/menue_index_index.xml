@@ -2,6 +2,7 @@
     <head>
         <script src="Nextorder_Menue::js/attrchange.js"/>
         <script src="Nextorder_Menue::js/attrchange_ext.js"/>
+        <!--<script src="Nextorder_Menue::js/sweetalert.min.js"/>-->
     </head>
     <body>
         <referenceContainer name="content">

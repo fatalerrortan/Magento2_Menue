@@ -1,3 +1,4 @@
+
 <h1 id="menu_week">Bestellen Sie Speisen für <b>die nächste Woche</b></h1>
 <h1><center>
         <button class="gui_change_backwards" action="backwards" onclick="loadTargetGUI(this)">
@@ -11,10 +12,11 @@
         </button>
 </center></h1>
 <div id="product_diy_container">
-    <table border="1">
+    <table id="diy_table" border="1">
         <?php echo $this->loadProductHtmlBySku(); ?>
     </table>
-    <hr /><center><button id="to_cart" class="action primary">In Warenkorb</button></center>
+    <hr />
+    <center><button id="to_cart" class="action primary" onclick="menuCheck()">Weiter</button></center>
 </div>
 <script type="text/javascript">
     var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":""};
@@ -51,34 +53,6 @@ require(['jquery'], function($) {
 //            order_container["var_" + index] = jQuery(this).attr("sku");
 //        }
 //    });
-    /*
-    read ordered products in order_container json and set in cart
-     */
-    jQuery("#to_cart").click(function () {
-        var data_to_post = "";
-        jQuery.each(order_container, function (key, value) {
-//            if((key == "amount") || (value == "")){return;}
-            if(key == "amount"){return;}
-            data_to_post = data_to_post + value + ",";
-        });
-        data_to_post = data_to_post.substring(0, data_to_post.length -1);
-        var postData = new FormData();
-        postData.append("menu_orders", data_to_post);
-        console.log(data_to_post);
-        jQuery.ajax({
-            type: "POST",
-            url: base_url+"index.php/menue/index/cart",
-            data: postData,
-            contentType: false,
-            processData: false,
-            dataType: "text",
-            success: function(data){
-                if (confirm("Ihr Wochenmenu ist bereits auf Warenkorb gelegt. Wollen Sie auf Warenkorb gehen?")) {
-                    window.location = base_url+"checkout/cart/";
-                }
-            }
-        });
-    });
 
     /*
     save tmp user choose in Session
@@ -102,6 +76,8 @@ require(['jquery'], function($) {
 //            success: function(data){}
 //        });
 //    });
+
+
 });
     /*
      load new product in menu block
@@ -238,6 +214,90 @@ require(['jquery'], function($) {
             }
         });
     }
+
+    function menuCheck() {
+        var isLoggedIn = "<?php echo $this->_isloggedIn; ?>";
+        if(!isLoggedIn){
+            return toCart();
+        }
+        require(['jquery', 'jquery/ui', 'Magento_Ui/js/modal/modal'], function($) {
+//            var loading = "<center><img src='<?php //echo $this->getViewFileUrl('Nextorder_Menue::img/loading.gif'); ?>//' alt='loading' style='width: 200px'/></center>";
+//            $("#diy_table").html(loading);
+            var postData = new FormData();
+            var data_to_post = "";
+            $.each(order_container, function (key, value) {
+                if(key == "amount"){return;}
+                data_to_post = data_to_post + value + ",";
+            });
+            data_to_post = data_to_post.substring(0, data_to_post.length -1);
+            postData.append("tmp_result", data_to_post);
+            $.ajax({
+                type: "POST",
+                url: base_url+"index.php/menue/validate/index",
+                data: postData,
+                contentType: false,
+                processData: false,
+                dataType: "text",
+                success: function(data){
+                    if(data != 'correct'){
+                        var options = {
+                            title: 'Bessermittag',
+                            autoOpen: true,
+                            responsive: true,
+                            closed: function () {
+                                console.log("modal closed");
+                            },
+                            buttons: [
+                                {
+                                text: 'Bestellung Updaten',
+                                class: 'menu_update',
+                                click: function () {
+                                    this.closeModal();
+                                    }
+                                },
+                                {
+                                    text: 'Trotzdem auf Warenkorb gehen',
+                                    class: 'menu_ignore',
+                                    click: function () {
+                                        this.closeModal();
+                                        toCart();
+                                    }
+                                }
+                            ]
+                        };
+                        $('<div />').html("<h2>"+data+"</h2>").modal(options);
+                    }else {
+                        toCart();
+                    }
+                }
+            });
+        });
+    }
+
+    function toCart() {
+        require(['jquery'], function($) {
+            var data_to_post = "";
+            jQuery.each(order_container, function (key, value) {
+                if(key == "amount"){return;}
+                data_to_post = data_to_post + value + ",";
+            });
+            data_to_post = data_to_post.substring(0, data_to_post.length -1);
+            var postData = new FormData();
+            postData.append("menu_orders", data_to_post);
+            console.log(data_to_post);
+            jQuery.ajax({
+                type: "POST",
+                url: base_url+"index.php/menue/index/cart",
+                data: postData,
+                contentType: false,
+                processData: false,
+                dataType: "text",
+                success: function(data){
+//                    if (confirm("Ihr Wochenmenu ist bereits auf Warenkorb gelegt. Wollen Sie auf Warenkorb gehen?")) {
+                        window.location = base_url+"checkout/cart/";
+//                    }
+                }
+            });
+        });
+    }
 </script>
-
-
