@@ -14,7 +14,20 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     protected $_modelMenudataFactory;
     public $_helper;
     public $_in_stock;
-
+    /**
+     * ListProduct constructor.
+     * @param \Magento\Catalog\Block\Product\Context $context
+     * @param \Magento\Framework\Data\Helper\PostHelper $postDataHelper
+     * @param \Magento\Catalog\Model\Layer\Resolver $layerResolver
+     * @param \Magento\Catalog\Api\CategoryRepositoryInterface $categoryRepository
+     * @param \Magento\Framework\Url\Helper\Data $urlHelper
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Nextorder\MenuData\Model\MenudataFactory $modelMenudataFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollection
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Nextorder\Menue\Helper\Data $helper
+     * @param array $data
+     */
     public function __construct(
         \Magento\Catalog\Block\Product\Context $context,
         \Magento\Framework\Data\Helper\PostHelper $postDataHelper,
@@ -44,14 +57,16 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
             $data
         );
     }
-    /*
-     * set price class
+    /**
+     * @param int $price_class
+     * @return int
      */
     public function setPriceClass($price_class){
         return $this->_price_class = $price_class;
     }
-    /*
-     * set menu index to locate changed menu
+    /**
+     * @param int $menu_index
+     * @return int
      */
     public function setMenuIndex($menu_index){
         return $this->_menu_index = $menu_index;
@@ -64,9 +79,9 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     public function setCurrentUserStatus($currentUserStatus = array()){
         return $this->_currentUserStatus = $currentUserStatus;
     }
-    /*
-    * get custom product collection
-    */
+    /**
+     * @return $this
+     */
     public function getCustomCollection(){
         $action = $this->_currentUserStatus;
 //        $this->_logger->addDebug(print_r($action, true));
@@ -112,7 +127,9 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
         }
         return $productCollection;
     }
-
+    /**
+     * @return $this
+     */
     public function loadLocalOptions(){
         $arrayToFilter = array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
         $productCollection = $this->_customProductCollection->create()

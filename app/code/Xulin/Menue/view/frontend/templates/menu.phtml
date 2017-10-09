@@ -230,7 +230,8 @@ require(['jquery'], function($) {
                 data_to_post = data_to_post + value + ",";
             });
             data_to_post = data_to_post.substring(0, data_to_post.length -1);
-            postData.append("tmp_result", data_to_post);
+            postData.append("mainOrders", data_to_post);
+            postData.append("sideOrders", null);
             $.ajax({
                 type: "POST",
                 url: base_url+"index.php/menue/validate/index",

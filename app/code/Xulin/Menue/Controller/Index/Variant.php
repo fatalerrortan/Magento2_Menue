@@ -18,27 +18,46 @@ class Variant extends \Magento\Framework\App\Action\Action
     }
 
     public function execute(){
-        //get Params form Post Method
-//        $this->getRequest()->getPost();
-        // load custom helper in Controller
-//        $test = $this->_objectManager->create('Nextorder\Menue\Helper\Data')->testHelper();
-//        echo $this->_helper->getAdminConfig()[1];
-        echo 'test!!!';
-        $resultPage = $this->_resultPageFactory->create();
-//        return $resultPage;
-        $Muskelaufbau = [
-            0 => [
-                'item' => 'rindfleisch',
-                'amount' => 3
-            ],
-            1 => [
-                'item' => 'eier',
-                'amount' => 2
-            ],
-            2 => [
-                'item' => 'salat',
-                'amount' => 2
-            ]
-        ];
+
+//        $mainOrders = [mo1, mo2, mo3 …….mon];
+//        $sideOrders = [so1, so2, so3 ...., son];
+//        $goals = [g1, g2, g3 …...gn];
+//
+//        $result = [];
+//        foreach ($goals as $goal) {
+//            $goalType = $goal['goalType']; // main oder or side order ?
+//            $itemName = $goal['itemName'];
+//            $itemAmount = $goal['itemAmount'];
+//            $amount = null;
+//            $ordersToCheck = null;
+//
+//            if ($goalType == 'mainOrder') {
+//                $ordersToCheck = $mainOrders;
+//            } else {
+//                $ordersToCheck = $sideOrders;
+//                if(empty($ordersToCheck)){
+//                    $result[$goalType][] = [
+//                        'item' => $itemName,
+//                        'supplement' => $itemAmount - $amount
+//                    ];
+//                    continue;
+//                }
+//            }
+//
+//            foreach ($ordersToCheck as $order) {
+//                if (($order['animalFood'] == $itemName)
+//                    ||
+//                    ($order['plantFood'] == $itemName)
+//                ) {
+//                    $amount++;
+//                }
+//            }
+//            if ($amount < $itemAmount) {
+//                $result[$goalType][] = [
+//                    'item' => $itemName,
+//                    'supplement' => $itemAmount - $amount
+//                ];
+//            }
+//        }
     }
 }

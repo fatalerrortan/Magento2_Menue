@@ -44,7 +44,6 @@ class LiveListProduct extends \Magento\Catalog\Block\Product\ListProduct{
         $productCollection = $this->_customProductCollection->create()
                 ->addAttributeToSelect('*')
                 ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
-        $this->_logger->addDebug(print_r('block works', true));
         return $productCollection;
     }
 
