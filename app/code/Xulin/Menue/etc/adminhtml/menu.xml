@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+
+        <add id="Nextorder_Menue::weekmenu"
+             title="Wochenmenü"
+             module="Nextorder_Menue"
+             sortOrder="35"
+             parent="Magento_Catalog::catalog"
+             resource="Magento_Backend::content"/>
+
+        <add id="Nextorder_Menue::weekmenu_goal"
+             title="Ernährungsziele"
+             module="Nextorder_Menue"
+             sortOrder="10"
+             parent="Nextorder_Menue::weekmenu"
+             action="menue/goal/index"
+             resource="Magento_Backend::content"/>
+
+    </menu>
+</config>
