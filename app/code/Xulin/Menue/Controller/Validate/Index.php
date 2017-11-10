@@ -5,6 +5,10 @@ namespace Nextorder\Menue\Controller\Validate;
 
 use Magento\Framework\App\Action\Context;
 
+/**
+ * Class Index
+ * @package Nextorder\Menue\Controller\Validate
+ */
 class Index extends \Magento\Framework\App\Action\Action{
     protected $_logger;
     protected $_customerSession;
@@ -70,8 +74,9 @@ class Index extends \Magento\Framework\App\Action\Action{
 //        $this->_helper->getProductAttrLabel(null, 'nof_animalproducts');
         return 'incorrect';
     }
+
     /**
-     * @param array $skusToFilter
+     * @param $skusToFilter
      * @return $this
      */
     protected function getProductCollection($skusToFilter){

@@ -16,6 +16,10 @@
         <?php echo $this->loadProductHtmlBySku(); ?>
     </table>
     <hr />
+    <table id="product_diy_additional" border="1">
+        <?php echo $this->loadAddtionalProductsBySkus(); ?>
+    </table>
+    <hr />
     <center><button id="to_cart" class="action primary" onclick="menuCheck()">Weiter</button></center>
 </div>
 <script type="text/javascript">

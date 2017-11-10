@@ -19,6 +19,8 @@ class Menue extends \Magento\Framework\View\Element\Template{
     protected $_currentUserStatus;
     public $_inStockSkus;
     public $_isloggedIn = false;
+    protected $_remoteSkus;
+    protected $_remoteSideSkus;
 //    public $_session_customer;
 
     /**
@@ -46,15 +48,17 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $this->_modelMenudataFactory = $modelMenudataFactory;
         parent::__construct($context, $data);
     }
-    /*
-     * load Predefined Products in Weekend Menu
+    /**
+     * @return string
      */
     public function loadProductHtmlBySku(){
         $menudataModel = $this->_modelMenudataFactory->create();
         $customerMenu = null;
         $customerMenuSkus = array();
         $products = array();
+        // @array pre-defined dafault products in admin config
         $localDefaultSKus = $this->_helper->getAdminConfig();
+        // @array all products assigned in the bundle product container
         $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         if ($this->_customerSession->isLoggedIn()) {
             $this->_isloggedIn = true;
@@ -113,8 +117,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     $remoteSkus = $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
 
 //                    $this->_logger->addDebug("Remote SKUs...............................................");
-//                    $this->_logger->addDebug(print_r($remoteSkus, true));
-
                     for ($i = 0; $i<5 ; $i++) {
 //                        $this->_logger->addDebug("SKU from OptionIDs...............................................");
 //                        $optionIds = array_keys($bundles);
@@ -143,29 +145,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
                             $products[] = $toAssignSku;
                         }
                     }
-//                    $this->_logger->addDebug("To Cart...............................................");
-//                    $this->_logger->addDebug(print_r($products, true));
-// ------------------------------------- new attempt start--------------------------------------------------------
-//                    $weekToList = array();
-//                    for ($i = 0; $i<5 ; $i++) {
-//                        $toDefaultSku = null;
-//                        $dayToList = array();
-//                        foreach ($customerMenuSkus[$i] as $currentMenuDataSku){
-//                            if(in_array($currentMenuDataSku, $remoteSkus)){
-//                                if(empty($toDefaultSku)){
-//                                    $toDefaultSku = $currentMenuDataSku;
-//                                }
-//                                $dayToList[] = $currentMenuDataSku;
-//                            }
-//                        }
-//                        $weekToList[] = $dayToList;
-//                        if(empty($toDefaultSku)){
-//                            $products[] = $this->_helper->getAdminConfig()[$i];
-//                        }else{
-//                            $products[] = $toDefaultSku;
-//                        }
-//                    }
-// ------------------------------------- new attempt end-------------------------------------------------------
                 }else{ // login without connected firm
                     $this->_currentUserStatus = "LOGIN_WITHOUT_WP";
                     for ($i = 0; $i<5 ; $i++) {
@@ -237,8 +216,39 @@ class Menue extends \Magento\Framework\View\Element\Template{
         }
         return $html;
     }
-    /*
+    /**
+     * @return null
+     */
+    public function loadAddtionalProductsBySkus(){
+//            $menudataModel = $this->_modelMenudataFactory->create();
+//            $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
+//            $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
+//            $remoteSkus = $this->_remoteSkus;
+//            $authDataToWP = $this->userValidate();
+            switch ($this->_currentUserStatus){
+                case "NO_LOGIN":
+                    return null;
+                    break;
+                case "FIRST_LOGIN_WITHOUT_WP":
+
+                    break;
+                case "FIRST_LOGIN_WITH_WP":
+
+                    break;
+                case "LOGIN_WITH_WP":
+
+                    break;
+                case "LOGIN_WITHOUT_WP":
+
+                    break;
+                default:
+                    return null;
+                    break;
+            }
+    }
+    /**
      * validate whether the user is bound to a company
+     * @return array
      */
     public function userValidate(){
         $currentCustomer = $this->_customerSession;
@@ -289,22 +299,46 @@ class Menue extends \Magento\Framework\View\Element\Template{
         );
         $remoteSkus = array();
         try{
-            $remoteProducts = $woocommerce->get('products');
+            $remoteProducts = $woocommerce->get('products', ['status' => 'publish']);
         }catch (HttpClientException $e){
             $this->_logger->addDebug(print_r($e->getRequest(), true));
             $this->_logger->addDebug(print_r($e->getResponse(), true));
         }
         foreach ($remoteProducts['products']as $product){
+            if(empty($product['sku'])){continue;}
+
+            $keyAttrMainDish = array_search('is_main_dish', array_column($product['attributes'], 'slug'));
+            $isMainDish = reset($product['attributes'][$keyAttrMainDish]['options']);
+
+            if($isMainDish != 'true'){
+                $this->_logger->addDebug("is Main DIsh");
+                $this->_remoteSideSkus['all'][] = $product['sku'];
+                if($product['in_stock']){
+                    $this->_remoteSideSkus['in_stock'][] = $product['sku'];
+                }
+            }
             $remoteSkus['all'][] = $product['sku'];
             if($product['in_stock']){
                 $remoteSkus['in_stock'][] = $product['sku'];
             }
         }
         $this->_inStockSkus = implode(",",$remoteSkus['in_stock']);
+        $this->_remoteSkus = $remoteSkus;
+        $this->_logger->addDebug(print_r($this->_remoteSideSkus, true));
         return $remoteSkus;
     }
-    /*
-     * load html wrapper for each product
+    /**
+     * @param string $name
+     * @param $price
+     * @param $priceClass
+     * @param $description
+     * @param $imgUrl
+     * @param $sku
+     * @param $index
+     * @param $optionId
+     * @param string $buttonStatus
+     * @param string $disableStyle
+     * @return string
      */
     public function getHtml($name, $price, $priceClass, $description,
                             $imgUrl, $sku, $index, $optionId, $buttonStatus = '', $disableStyle = ''){
@@ -347,15 +381,19 @@ class Menue extends \Magento\Framework\View\Element\Template{
                </tr>";
         return $html;
     }
-    /*
-     * check status of session
+
+    /**
+     * @return array
      */
     public function getSession(){
         if(isset($_SESSION['user_choose'])){
             return array_filter(explode(",", $_SESSION['user_choose']));
         }
     }
-
+    /**
+     * @param bool $nextWeek
+     * @return array
+     */
     public function getOrderDate($nextWeek = true){
         $dayOfWeekId = date('w');
         $spreadToNextWeek = 5 - $dayOfWeekId;
