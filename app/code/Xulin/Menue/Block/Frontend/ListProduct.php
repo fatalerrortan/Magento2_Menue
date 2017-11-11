@@ -71,7 +71,10 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     public function setMenuIndex($menu_index){
         return $this->_menu_index = $menu_index;
     }
-
+    /**
+     * @param $optionIdIndex
+     * @return mixed
+     */
     public function setOptionIdIndex($optionIdIndex){
         return $this->_optionIdIndex = $optionIdIndex;
     }

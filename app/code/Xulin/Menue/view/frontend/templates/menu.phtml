@@ -17,7 +17,8 @@
     </table>
     <hr />
     <table id="product_diy_additional" border="1">
-        <?php echo $this->loadAddtionalProductsBySkus(); ?>
+        <h2>Vor- und Nachspeisen</h2>
+        <?php echo $this->loadProductHtmlBySku(true); ?>
     </table>
     <hr />
     <center><button id="to_cart" class="action primary" onclick="menuCheck()">Weiter</button></center>

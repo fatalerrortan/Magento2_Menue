@@ -20,7 +20,7 @@
 
 
             <group id="menu_group_2" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Standard-Items im Bündelprodukt</label>
+                <label>Standard-Items für Hauptspeisen</label>
                 <field id="menu_group_2_field_1" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>SKU für Standard-Speise 1</label>
                     <validate>validate-no-empty</validate>
@@ -42,6 +42,35 @@
                     <comment><![CDATA[Die Preis-Klasse dieser Position hängt von der hier eingetragenen SKU ab]]></comment>
                 </field>
                 <field id="menu_group_2_field_5" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>SKU für Standard-Speise 5</label>
+                    <validate>validate-no-empty</validate>
+                    <comment><![CDATA[Die Preis-Klasse dieser Position hängt von der hier eingetragenen SKU ab]]></comment>
+                </field>
+            </group>
+
+            <group id="menu_group_3" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Standard-Items für Vor- und Nachspeisen</label>
+                <field id="menu_group_3_field_1" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>SKU für Standard-Speise 1</label>
+                    <validate>validate-no-empty</validate>
+                    <comment><![CDATA[Die Preis-Klasse dieser Position hängt von der hier eingetragenen SKU ab]]></comment>
+                </field>
+                <field id="menu_group_3_field_2" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>SKU für Standard-Speise 2</label>
+                    <validate>validate-no-empty</validate>
+                    <comment><![CDATA[Die Preis-Klasse dieser Position hängt von der hier eingetragenen SKU ab]]></comment>
+                </field>
+                <field id="menu_group_3_field_3" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>SKU für Standard-Speise 3</label>
+                    <validate>validate-no-empty</validate>
+                    <comment><![CDATA[Die Preis-Klasse dieser Position hängt von der hier eingetragenen SKU ab]]></comment>
+                </field>
+                <field id="menu_group_3_field_4" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>SKU für Standard-Speise 4</label>
+                    <validate>validate-no-empty</validate>
+                    <comment><![CDATA[Die Preis-Klasse dieser Position hängt von der hier eingetragenen SKU ab]]></comment>
+                </field>
+                <field id="menu_group_3_field_5" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>SKU für Standard-Speise 5</label>
                     <validate>validate-no-empty</validate>
                     <comment><![CDATA[Die Preis-Klasse dieser Position hängt von der hier eingetragenen SKU ab]]></comment>

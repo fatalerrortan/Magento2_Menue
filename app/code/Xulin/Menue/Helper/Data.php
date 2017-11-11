@@ -33,13 +33,22 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
      * @return array
      */
     public function getAdminConfig(){
-        return array(
-            $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_1'),
-            $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_2'),
-            $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_3'),
-            $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_4'),
-            $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_5')
-        );
+        return [
+                'main' => array(
+                    $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_1'),
+                    $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_2'),
+                    $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_3'),
+                    $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_4'),
+                    $this->_scopeConfig->getValue('menu/menu_group_2/menu_group_2_field_5')
+                ),
+                'side' => array(
+                    $this->_scopeConfig->getValue('menu/menu_group_3/menu_group_3_field_1'),
+                    $this->_scopeConfig->getValue('menu/menu_group_3/menu_group_3_field_2'),
+                    $this->_scopeConfig->getValue('menu/menu_group_3/menu_group_3_field_3'),
+                    $this->_scopeConfig->getValue('menu/menu_group_3/menu_group_3_field_4'),
+                    $this->_scopeConfig->getValue('menu/menu_group_3/menu_group_3_field_5')
+                )
+        ];
     }
     /**
      * @return array

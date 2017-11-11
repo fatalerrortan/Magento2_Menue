@@ -48,16 +48,20 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $this->_modelMenudataFactory = $modelMenudataFactory;
         parent::__construct($context, $data);
     }
+
     /**
+     * @param bool $isSideMenu
      * @return string
      */
-    public function loadProductHtmlBySku(){
+    public function loadProductHtmlBySku($isSideMenu = false){
         $menudataModel = $this->_modelMenudataFactory->create();
         $customerMenu = null;
         $customerMenuSkus = array();
         $products = array();
         // @array pre-defined dafault products in admin config
-        $localDefaultSKus = $this->_helper->getAdminConfig();
+        $menuType = $isSideMenu ? 'side' : 'main';
+        $localDefaultSKus = $this->_helper->getAdminConfig()[$menuType];
+//        $this->_logger->addDebug(print_r($this->_helper->getAdminConfig()['side'], true));
         // @array all products assigned in the bundle product container
         $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         if ($this->_customerSession->isLoggedIn()) {
@@ -69,9 +73,10 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     $wpCosumerKey = $authDataToWP['wp_cosumer_key'];
                     $wpCosumerSecret = $authDataToWP['wp_cosumer_secret'];
                     $wpShopUrl = $authDataToWP['wp_shop_url'];
-                    $remoteSkus = $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
-//                    $this->_logger->addDebug(print_r($remoteSkus, true));
-                    $index = 0;
+                    $remoteSkus = $isSideMenu ?
+                        $this->_remoteSideSkus:
+                        $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
+                    $index = $isSideMenu ? 5 : 0;
                     foreach ($localDefaultSKus as $localDefaultSKu){
                         if(in_array($localDefaultSKu, $remoteSkus['in_stock'])){
                             $products[] = $localDefaultSKu;
@@ -94,9 +99,10 @@ class Menue extends \Magento\Framework\View\Element\Template{
                         $this->_currentUserStatus = "FIRST_LOGIN_WITH_WP";
                         $index++;
                     }
-//                    $this->_logger->addDebug(print_r($products, true));
                 }else{ //first login without connected firm
-                    $products = $this->_helper->getAdminConfig();
+                    $products = $isSideMenu ?
+                        $this->_helper->getAdminConfig()['side']:
+                        $this->_helper->getAdminConfig()['main'];
                     $this->_currentUserStatus = "FIRST_LOGIN_WITHOUT_WP";
                 }
             }else{
@@ -114,7 +120,9 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     $wpCosumerKey = $authDataToWP['wp_cosumer_key'];
                     $wpCosumerSecret = $authDataToWP['wp_cosumer_secret'];
                     $wpShopUrl = $authDataToWP['wp_shop_url'];
-                    $remoteSkus = $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
+                    $remoteSkus = $isSideMenu ?
+                        $this->_remoteSideSkus:
+                        $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
 
 //                    $this->_logger->addDebug("Remote SKUs...............................................");
                     for ($i = 0; $i<5 ; $i++) {
@@ -133,7 +141,8 @@ class Menue extends \Magento\Framework\View\Element\Template{
                             if(in_array($localDefaultSKus[$i], $remoteSkus['in_stock'])){
                                 $products[] = $localDefaultSKus[$i];
                             }else{
-                                $skuToAssign = array_intersect($remoteSkus['in_stock'], array_keys($bundles[$optionIds[$i]]));
+                                $sideMenuIndex = $isSideMenu ? 5 : 0;
+                                $skuToAssign = array_intersect($remoteSkus['in_stock'], array_keys($bundles[$optionIds[$i+$sideMenuIndex]]));
                                 if(!empty($skuToAssign)){
                                     $products[] = current($skuToAssign);
                                 }else{
@@ -147,20 +156,31 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     }
                 }else{ // login without connected firm
                     $this->_currentUserStatus = "LOGIN_WITHOUT_WP";
-                    for ($i = 0; $i<5 ; $i++) {
-                        $products[] = $customerMenuSkus[$i][0];
+                    if($isSideMenu){
+                        $products = $this->_helper->getAdminConfig()['side'];
+                    }else{
+                        for ($i = 0; $i<5 ; $i++) {
+                            $products[] = $customerMenuSkus[$i][0];
+                        }
                     }
                 }
             }
         }else{ // Not login => free user
-            $products = $this->_helper->getAdminConfig();
+            if($isSideMenu){
+                return "<center><h3>
+                    Bestellen Sie das Wochenmenü mit Ihrem personalisierten Ernährungsziel nach 
+                    <a href='".$this->getUrl('customer/account/login')."'>Einloggen</a>
+                    </h3></center>";
+            }else{
+                $products = $this->_helper->getAdminConfig()['main'];
+            }
             $this->_currentUserStatus = "NO_LOGIN";
         }
         $html = '';
-        $index = 1;
         $optionIds = array_keys($bundles);
-        $optionIdIndex = 0;
-//            $this->_logger->addDebug(print_r($products, true));
+        $index = $isSideMenu ? 6 : 1;
+        $menuDataIndex = 0;
+        $optionIdIndex = $isSideMenu ? 5 : 0;
         foreach ($products as $item) {
             switch ($this->_currentUserStatus){
                 case "NO_LOGIN":
@@ -184,14 +204,14 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
                         "type" => "LOGIN_WITH_WP",
                         "remote_skus" => $remoteSkus,
-                        "talent_skus" => $customerMenuSkus[$optionIdIndex],
+                        "talent_skus" => $customerMenuSkus[$menuDataIndex],
                         'option_skus' => array_keys($bundles[$optionIds[$optionIdIndex]])
                     ));
                     break;
                 case "LOGIN_WITHOUT_WP":
                     $this->getChildBlock("ListProduct")->setCurrentUserStatus(array(
                         "type" => "LOGIN_WITHOUT_WP",
-                        "talent_skus" => $customerMenuSkus[$optionIdIndex]
+                        "talent_skus" => $customerMenuSkus[$menuDataIndex]
                     ));
                     break;
                 default:
@@ -212,6 +232,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                 $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index, $optionIds[$optionIdIndex]);
             }
             $index++;
+            $menuDataIndex++;
             $optionIdIndex++;
         }
         return $html;
@@ -227,7 +248,10 @@ class Menue extends \Magento\Framework\View\Element\Template{
 //            $authDataToWP = $this->userValidate();
             switch ($this->_currentUserStatus){
                 case "NO_LOGIN":
-                    return null;
+                    return "<center><h3>
+                    Bestellen Sie das Wochenmenü mit Ihrem personalisierten Ernährungsziel nach 
+                    <a href='".$this->getUrl('customer/account/login')."'>Einloggen</a>
+                    </h3></center>";
                     break;
                 case "FIRST_LOGIN_WITHOUT_WP":
 
@@ -285,9 +309,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * load in stock skus from remote wordpress
      */
     public function getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret){
-//        $this->_logger->addDebug(print_r($wpShopUrl, true));
-//        $this->_logger->addDebug(print_r($wpCosumerKey, true));
-//        $this->_logger->addDebug(print_r($wpCosumerSecret, true));
         $woocommerce = new Client(
             $wpShopUrl,
             $wpCosumerKey,
@@ -311,7 +332,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
             $isMainDish = reset($product['attributes'][$keyAttrMainDish]['options']);
 
             if($isMainDish != 'true'){
-                $this->_logger->addDebug("is Main DIsh");
+//                $this->_logger->addDebug("is Main DIsh");
                 $this->_remoteSideSkus['all'][] = $product['sku'];
                 if($product['in_stock']){
                     $this->_remoteSideSkus['in_stock'][] = $product['sku'];
@@ -324,7 +345,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
         }
         $this->_inStockSkus = implode(",",$remoteSkus['in_stock']);
         $this->_remoteSkus = $remoteSkus;
-        $this->_logger->addDebug(print_r($this->_remoteSideSkus, true));
+//        $this->_logger->addDebug(print_r($this->_remoteSideSkus, true));
         return $remoteSkus;
     }
     /**
@@ -347,7 +368,12 @@ class Menue extends \Magento\Framework\View\Element\Template{
             2 => 'Dienstag',
             3 => 'Mittwoche',
             4 => 'Donnerstag',
-            5 => 'Freitag'
+            5 => 'Freitag',
+            6 => 'Montag',
+            7 => 'Dienstag',
+            8 => 'Mittwoche',
+            9 => 'Donnerstag',
+            10 => 'Freitag'
         );
         if($sku === 'disable'){$buttonStatus = 'disabled'; $disableStyle = 'background-color: grey';}
         $this->getChildBlock("ListProduct")->setPriceClass($priceClass);

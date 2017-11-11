@@ -19,10 +19,13 @@ class UpdateItemsOptionIds implements ObserverInterface{
         $this->_logger = $logger;
         $this->_scopeConfig = $scopeConfig;
     }
-/*
- * read and update all children products from the bundle product"weekend menu"
- * save in module Nextorder_Menue => inc
- */
+
+    /**
+     * read and update all children products from the bundle product"weekend menu"
+     * save in module Nextorder_Menue => inc
+     * @param \Magento\Framework\Event\Observer $observer
+     * @return bool
+     */
     public function execute(\Magento\Framework\Event\Observer $observer){
 
         $bundleDataSource = array();
@@ -44,8 +47,12 @@ class UpdateItemsOptionIds implements ObserverInterface{
 //        $this->_logger->addDebug(print_r($this->_bundleDataSource, true));
         return $this->save('inc','bundleDataSource.txt');
     }
-    /*
+
+    /**
      * get module dir to save serialized array of option ids
+     * @param $moduleName
+     * @param string $type
+     * @return string
      */
     public  function df_module_dir($moduleName, $type = '') {
         /** @var \Magento\Framework\ObjectManagerInterface $om */
@@ -54,8 +61,13 @@ class UpdateItemsOptionIds implements ObserverInterface{
         $reader = $om->get('Magento\Framework\Module\Dir\Reader');
         return $reader->getModuleDir($type, $moduleName);
     }
-    /*
+
+    /**
      * check and generate Order "inc" to set serialized array of option ids
+     * @param $dir
+     * @param $file
+     * @param bool $flag
+     * @return bool
      */
     public function save($dir, $file, $flag = false){
         $moduleDir = $this->df_module_dir("Nextorder_Menue")."/".$dir;
