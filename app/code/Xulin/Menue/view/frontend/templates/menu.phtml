@@ -16,8 +16,8 @@
         <?php echo $this->loadProductHtmlBySku(); ?>
     </table>
     <hr />
-    <table id="product_diy_additional" border="1">
-        <h2>Vor- und Nachspeisen</h2>
+    <table id="product_diy_additional" border="1" style="display: none">
+        <h2><b>Vor- und Nachspeisen</b></h2>
         <?php echo $this->loadProductHtmlBySku(true); ?>
     </table>
     <hr />
@@ -84,8 +84,15 @@ require(['jquery'], function($) {
 
 
 });
-    /*
-     load new product in menu block
+    /**
+     *  load new product in menu block
+     * @param sku
+     * @param name
+     * @param description
+     * @param price
+     * @param img
+     * @param position
+     * @returns {boolean}
      */
     function load_new_var_product(sku, name, description, price, img, position) {
         require(['jquery'], function($){
@@ -104,15 +111,17 @@ require(['jquery'], function($) {
         return true;
     }
 
-    function menuStatus(element) {
+    function menuStatus(element, isSideMenu = false) {
         require(['jquery'], function($) {
             var currentStatus = $(element).hasClass('active');
             var currentIndex =  $(element).parent().parent().attr('index');
             if (currentStatus){
-                if(order_container.amount >= 2){
-                    return alert('Sie sollten ESSEN mindestens für drei Tage bestellen!');
+                if(!isSideMenu){
+                    if(order_container.amount >= 2){
+                        return alert('Sie sollten ESSEN mindestens für drei Tage bestellen!');
+                    }
+                    order_container.amount = order_container.amount + 1;
                 }
-                order_container.amount = order_container.amount + 1;
                 $(element).parent().parent().css("background-color", "grey");
                 $(element).removeClass('active');
                 $(element).css('background-color', 'green');
@@ -121,9 +130,10 @@ require(['jquery'], function($) {
                     .find('button').first().html("<del>Austausch</del>").prop('disabled', true);
                 $(element).parent().parent().find('td.product_info').find('div.list_container').hide();
                 order_container['var_'+currentIndex] = 'disable';
-                console.log(order_container);
             }else {
-                order_container.amount = order_container.amount - 1;
+                if(!isSideMenu){
+                    order_container.amount = order_container.amount - 1;
+                }
                 $(element).parent().parent().css("background-color", "white");
                 $(element).css('background-color', 'white');
                 $(element).addClass('active');
@@ -132,7 +142,6 @@ require(['jquery'], function($) {
                     .find('button').first().html("Austausch").prop('disabled', false);
                 $(element).parent().parent().find('td.product_info').find('div.list_container').show();
                 order_container['var_'+currentIndex] = $(element).parent().parent().attr('sku');
-                console.log(order_container);
             }
         });
     }
@@ -245,7 +254,8 @@ require(['jquery'], function($) {
                 processData: false,
                 dataType: "text",
                 success: function(data){
-                    if(data != 'correct'){
+                    data = $.parseJSON(data);
+                    if(data.result != 'correct'){
                         var options = {
                             title: 'Bessermittag',
                             autoOpen: true,
@@ -259,6 +269,7 @@ require(['jquery'], function($) {
                                 class: 'menu_update',
                                 click: function () {
                                     this.closeModal();
+                                    $("#product_diy_additional").show();
                                     }
                                 },
                                 {
@@ -271,7 +282,7 @@ require(['jquery'], function($) {
                                 }
                             ]
                         };
-                        $('<div />').html("<h2>"+data+"</h2>").modal(options);
+                        $('<div />').html("<h2>"+data.message+"</h2>").modal(options);
                     }else {
                         toCart();
                     }
@@ -283,7 +294,15 @@ require(['jquery'], function($) {
     function toCart() {
         require(['jquery'], function($) {
             var data_to_post = "";
+            var isSidemenuDisplay = $("#product_diy_additional").css('display');
+            var index = 0;
             jQuery.each(order_container, function (key, value) {
+                if((isSidemenuDisplay === 'none') && (index > 5)){
+                    data_to_post = data_to_post + 'disable,';
+                    index++;
+                    return;
+                }
+                index++;
                 if(key == "amount"){return;}
                 data_to_post = data_to_post + value + ",";
             });

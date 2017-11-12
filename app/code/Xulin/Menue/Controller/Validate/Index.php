@@ -72,7 +72,11 @@ class Index extends \Magento\Framework\App\Action\Action{
             $this->_logger->addDebug(print_r("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", true));
         }
 //        $this->_helper->getProductAttrLabel(null, 'nof_animalproducts');
-        return 'incorrect';
+        $response = [
+            'result' => 'incorrect',
+            'message' => 'Ihre Auswähle passen nicht Ihrem Ernährungsziel! Bitte täglich Einmal Salat'
+        ];
+        return json_encode($response);
     }
 
     /**

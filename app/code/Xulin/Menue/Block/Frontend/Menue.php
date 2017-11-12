@@ -61,7 +61,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
         // @array pre-defined dafault products in admin config
         $menuType = $isSideMenu ? 'side' : 'main';
         $localDefaultSKus = $this->_helper->getAdminConfig()[$menuType];
-//        $this->_logger->addDebug(print_r($this->_helper->getAdminConfig()['side'], true));
         // @array all products assigned in the bundle product container
         $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
         if ($this->_customerSession->isLoggedIn()) {
@@ -229,7 +228,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                 $imgUrl = $this->getUrl('pub/media/catalog').'product'.$product->getImage();
                 $productShortDescription = $product->getShortDescription();
                 $priceClass = $product->getData('price_class');
-                $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index, $optionIds[$optionIdIndex]);
+                $html .= $this->getHtml($productName, $productPrice, $priceClass, $productShortDescription, $imgUrl, $item, $index, $optionIds[$optionIdIndex],'','',$isSideMenu);
             }
             $index++;
             $menuDataIndex++;
@@ -362,7 +361,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * @return string
      */
     public function getHtml($name, $price, $priceClass, $description,
-                            $imgUrl, $sku, $index, $optionId, $buttonStatus = '', $disableStyle = ''){
+                            $imgUrl, $sku, $index, $optionId, $buttonStatus = '', $disableStyle = '', $isSidemenu){
         $week = array(
             1 => 'Montag',
             2 => 'Dienstag',
@@ -402,7 +401,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     <span>".$price."&euro;</span>
                  </td>  
                  <td class='status'>
-                    <button class='status_button active' onclick='menuStatus(this)' ".$buttonStatus.">Disable</button>
+                    <button class='status_button active' onclick='menuStatus(this, ".$isSidemenu.")' ".$buttonStatus.">Disable</button>
                  </td>
                </tr>";
         return $html;
@@ -422,6 +421,8 @@ class Menue extends \Magento\Framework\View\Element\Template{
      */
     public function getOrderDate($nextWeek = true){
         $dayOfWeekId = date('w');
+        $this->_logger->addDebug(print_r("get Order Date", true));
+        $this->_logger->addDebug(print_r($dayOfWeekId, true));
         $spreadToNextWeek = 5 - $dayOfWeekId;
         if($nextWeek){
             // for next week
@@ -438,5 +439,14 @@ class Menue extends \Magento\Framework\View\Element\Template{
             'raw_begin' => $beginWeek,
             'raw_end' => $endWeek
         );
+    }
+
+    public function getOrderDate_v2(){
+        $dayOfWeekId = date('w');
+        switch ($dayOfWeekId){
+            case $dayOfWeekId < 2:
+                break;
+            case $dayOfWeekId > 2;
+        }
     }
 }
