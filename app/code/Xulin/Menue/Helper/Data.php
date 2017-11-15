@@ -80,10 +80,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
         return $reader->getModuleDir($type, $moduleName);
     }
 
-    public function getGoalDefinition($optionId){
+    public function getGoalDefinition($optionId = null){
         $attributes = $this->_eavAttributeRepository->get(Customer::ENTITY, 'nof_goal');
         $options = $attributes->getSource()->getAllOptions(false);
         $label = null;
+        if(empty($optionId)){return $options;}
         foreach ($options as $option){
             if($option['value'] === $optionId){
                 $label = $option['label'];

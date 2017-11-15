@@ -17,14 +17,15 @@
     </table>
     <hr />
     <table id="product_diy_additional" border="1" style="display: none">
-        <h2><b>Vor- und Nachspeisen</b></h2>
+        <h2 id="additional_title" style="display: none"><b>Vor- und Nachspeisen</b></h2>
         <?php echo $this->loadProductHtmlBySku(true); ?>
     </table>
     <hr />
     <center><button id="to_cart" class="action primary" onclick="menuCheck()">Weiter</button></center>
 </div>
 <script type="text/javascript">
-    var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":""};
+    var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":"",
+        "var_6":"disable", "var_7":"disable", "var_8":"disable", "var_9":"disable", "var_10":"disable"};
     var gui_status = {status: 1};
     var ordered_menu = null;
     var base_url = "<?php echo $this->getUrl(); ?>";
@@ -269,6 +270,7 @@ require(['jquery'], function($) {
                                 class: 'menu_update',
                                 click: function () {
                                     this.closeModal();
+                                    $("#additional_title").show();
                                     $("#product_diy_additional").show();
                                     }
                                 },

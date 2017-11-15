@@ -441,12 +441,12 @@ class Menue extends \Magento\Framework\View\Element\Template{
         );
     }
 
-    public function getOrderDate_v2(){
-        $dayOfWeekId = date('w');
-        switch ($dayOfWeekId){
-            case $dayOfWeekId < 2:
-                break;
-            case $dayOfWeekId > 2;
-        }
-    }
+//    public function getOrderDate_v2(){
+//        $dayOfWeekId = date('w');
+//        switch ($dayOfWeekId){
+//            case $dayOfWeekId < 2:
+//                break;
+//            case $dayOfWeekId > 2;
+//        }
+//    }
 }

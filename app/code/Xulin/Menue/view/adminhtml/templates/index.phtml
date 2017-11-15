@@ -1,2 +1,117 @@
-<h3>First Admin Site!!!!!!!!!!!!!!!!!!!!!</h3>
-<h5><?php echo $this->test; ?></h5>
+<div id="goal_save" class="row">
+    <button onclick="save()" title="" style="position: absolute; right: 30px" type="button" class="action-default scalable save primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" data-ui-id="page-actions-toolbar-save-button" role="button" aria-disabled="false">
+            <span class="ui-button-text">
+                <span>Save</span>
+            </span>
+    </button>
+</div>
+<table class="table table-striped">
+    <tr class="table-active">
+        <th scope="col"><h3>Ernährungsziel</h3></th>
+        <th scope="col"><h3>Definition</h3></th>
+        <th scope="col"><h3>Verarbeiten</h3></th>
+    </tr>
+<?php
+    $labels = $this->getGoalsTable();
+    $tableContent = '';
+    foreach ($labels as $label){
+        $tableContent .="
+            <tr id='".$label."'>
+                <td><h4>".$label."</h4></td>
+                <td>
+                  <ul class='list-group'>
+                    <li class='list-group-item'>Regel 1 > 3</li>
+                    <li class='list-group-item'>Regel 2 > 4</li>
+                    <li class='list-group-item'>Regel 3 > 5</li>
+                    <li class='list-group-item'>Regel 4 > 6</li>
+                    <li class='list-group-item'>Regel 5 > 7</li>
+                  </ul>
+                </td>
+                <td onclick='edit(this)'><a href='#'><i class='fa fa-cog fa-2x'></i></a></td>
+            </tr>
+        ";
+    }
+    echo $tableContent;
+?>
+</table>
+<div id="goal_edit_gui" style="display: none;">
+<form id="attr_def_container"></form>
+<br />
+<div id="add_attr">
+    <center>
+        <button onclick="addAttr()" title="add_attr" type="button" class="action-default scalable save primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" data-ui-id="page-actions-toolbar-save-button" role="button" aria-disabled="false">
+            <span class="ui-button-text">
+                <span>Definition Für "</span><span class="current_label"></span><span>" Hinzufügen</span>
+            </span>
+        </button>
+    </center>
+</div>
+</div>
+
+<div id="attr_group_pattern" style="display: none">
+<div class="attr_grounp" style="border-style: outset;">
+    <div class="form-group">
+        <label for="goal_attr">Attribute</label>
+        <select class="form-control" id="goal_attr">
+            <option>Salat</option>
+            <option>Rindfleich</option>
+            <option>Schweinfleich</option>
+            <option>Fisch</option>
+            <option>Eier</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="goal_operator">Operator</label>
+        <select class="form-control" id="goal_operator">
+            <option>=</option>
+            <option>></option>
+            <option><</option>
+            <option>>=</option>
+            <option><=</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="goal_value">Wert</label>
+        <input class="form-control" id="goal_value" type="number">
+    </div>
+    <div class="form-group" onclick="remove(this)">
+        <ul class='list-group'>
+            <a href="#">
+            <li class='list-group-item' style="position: absolute; right: 0">
+                <i class="fa fa-times fa-2x" aria-hidden="true"></i>
+            </li>
+            </a>
+        </ul>
+    </div>
+    <br />
+</div>
+</div>
+
+<script type="text/javascript">
+    function edit(element) {
+        require(['jquery'], function($){
+            var label = $(element).parent().attr('id');
+            $("#add_attr span.current_label").html(label);
+            $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+            $("#goal_edit_gui").toggle('slow');
+        });
+    }
+
+    function addAttr() {
+        require(['jquery'], function($){
+            var attrGroup = $("#attr_group_pattern").html();
+            $("#attr_def_container").append(attrGroup);
+        });
+    }
+    
+    function remove(element) {
+        require(['jquery'], function($){
+            $(element).parent().remove();
+            $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+        });
+    }
+
+    function save() {
+        alert('just for Test');
+    }
+</script>
