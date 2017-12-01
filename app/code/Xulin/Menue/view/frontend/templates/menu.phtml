@@ -16,16 +16,24 @@
         <?php echo $this->loadProductHtmlBySku(); ?>
     </table>
     <hr />
-    <table id="product_diy_additional" border="1" style="display: none">
-        <h2 id="additional_title" style="display: none"><b>Vor- und Nachspeisen</b></h2>
-        <?php echo $this->loadProductHtmlBySku(true); ?>
+    <div id="side_dish_title" style="display: none">
+        <button class="before" onclick="renderSideMenu(this)"><h4><b>Vorspeisen</b></h4></button>
+        <button class="after" onclick="renderSideMenu(this)"><h4><b>Nachspeisen</b></h4></button>
+    </div>
+    <table id="before" border="1" style="display: none">
+        <?php echo $this->loadProductHtmlBySku(true, true); ?>
+    </table>
+    <table id="after" border="1" style="display: none">
+        <?php echo $this->loadProductHtmlBySku(true, false); ?>
     </table>
     <hr />
     <center><button id="to_cart" class="action primary" onclick="menuCheck()">Weiter</button></center>
 </div>
 <script type="text/javascript">
     var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":"",
-        "var_6":"disable", "var_7":"disable", "var_8":"disable", "var_9":"disable", "var_10":"disable"};
+        "var_6":"disable", "var_7":"disable", "var_8":"disable", "var_9":"disable", "var_10":"disable",
+        "var_11":"disable", "var_12":"disable", "var_13":"disable", "var_14":"disable", "var_15":"disable"};
+    var side_menu_status = {render: 'before', hide: 'after'}
     var gui_status = {status: 1};
     var ordered_menu = null;
     var base_url = "<?php echo $this->getUrl(); ?>";
@@ -270,8 +278,10 @@ require(['jquery'], function($) {
                                 class: 'menu_update',
                                 click: function () {
                                     this.closeModal();
-                                    $("#additional_title").show();
-                                    $("#product_diy_additional").show();
+                                    $("#side_dish_title").show();
+                                    $("#before").show();
+//                                    $("#product_diy_additional").show();
+//                                    $("#product_diy_additional_dessert").show();
                                     }
                                 },
                                 {
@@ -296,7 +306,7 @@ require(['jquery'], function($) {
     function toCart() {
         require(['jquery'], function($) {
             var data_to_post = "";
-            var isSidemenuDisplay = $("#product_diy_additional").css('display');
+            var isSidemenuDisplay = $("#side_dish_title").css('display');
             var index = 0;
             jQuery.each(order_container, function (key, value) {
                 if((isSidemenuDisplay === 'none') && (index > 5)){
@@ -325,6 +335,21 @@ require(['jquery'], function($) {
 //                    }
                 }
             });
+        });
+    }
+
+    function renderSideMenu(element) {
+        require(['jquery'], function($) {
+            var targetMenu = $(element).attr('class');
+            var currentStatus = side_menu_status.render;
+            if(targetMenu != currentStatus){
+                $("#"+currentStatus).hide(1000);
+                $("#"+targetMenu).show(1000);
+                side_menu_status.render = targetMenu;
+                side_menu_status.hide = currentStatus;
+            }else {
+                return false;
+            }
         });
     }
 </script>

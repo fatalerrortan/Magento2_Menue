@@ -53,7 +53,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
      * @param bool $isSideMenu
      * @return string
      */
-    public function loadProductHtmlBySku($isSideMenu = false){
+    public function loadProductHtmlBySku($isSideMenu = false, $isAppetizer = false){
         $menudataModel = $this->_modelMenudataFactory->create();
         $customerMenu = null;
         $customerMenuSkus = array();
@@ -75,7 +75,13 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     $remoteSkus = $isSideMenu ?
                         $this->_remoteSideSkus:
                         $this->getRemoteSkus($wpShopUrl, $wpCosumerKey, $wpCosumerSecret);
-                    $index = $isSideMenu ? 5 : 0;
+                    if($isSideMenu && $isAppetizer){
+                        $index =  5;
+                    }elseif ($isSideMenu && !$isAppetizer){
+                        $index =  10;
+                    }else{
+                        $index =  0;
+                    }
                     foreach ($localDefaultSKus as $localDefaultSKu){
                         if(in_array($localDefaultSKu, $remoteSkus['in_stock'])){
                             $products[] = $localDefaultSKu;
@@ -140,7 +146,13 @@ class Menue extends \Magento\Framework\View\Element\Template{
                             if(in_array($localDefaultSKus[$i], $remoteSkus['in_stock'])){
                                 $products[] = $localDefaultSKus[$i];
                             }else{
-                                $sideMenuIndex = $isSideMenu ? 5 : 0;
+                                if($isSideMenu && $isAppetizer){
+                                    $sideMenuIndex =  5;
+                                }elseif ($isSideMenu && !$isAppetizer){
+                                    $sideMenuIndex =  10;
+                                }else{
+                                    $sideMenuIndex =  0;
+                                }
                                 $skuToAssign = array_intersect($remoteSkus['in_stock'], array_keys($bundles[$optionIds[$i+$sideMenuIndex]]));
                                 if(!empty($skuToAssign)){
                                     $products[] = current($skuToAssign);
@@ -177,9 +189,21 @@ class Menue extends \Magento\Framework\View\Element\Template{
         }
         $html = '';
         $optionIds = array_keys($bundles);
-        $index = $isSideMenu ? 6 : 1;
+        if($isSideMenu && $isAppetizer){
+            $index =  6;
+        }elseif ($isSideMenu && !$isAppetizer){
+            $index =  11;
+        }else{
+            $index =  1;
+        }
         $menuDataIndex = 0;
-        $optionIdIndex = $isSideMenu ? 5 : 0;
+        if($isSideMenu && $isAppetizer){
+            $optionIdIndex =  5;
+        }elseif ($isSideMenu && !$isAppetizer){
+            $optionIdIndex =  10;
+        }else{
+            $optionIdIndex =  0;
+        }
         foreach ($products as $item) {
             switch ($this->_currentUserStatus){
                 case "NO_LOGIN":
@@ -368,11 +392,16 @@ class Menue extends \Magento\Framework\View\Element\Template{
             3 => 'Mittwoche',
             4 => 'Donnerstag',
             5 => 'Freitag',
-            6 => 'Montag',
-            7 => 'Dienstag',
-            8 => 'Mittwoche',
-            9 => 'Donnerstag',
-            10 => 'Freitag'
+            6 => 'Vorspeise für Montag',
+            7 => 'Vorspeise für Dienstag',
+            8 => 'Vorspeise für Mittwoche',
+            9 => 'Vorspeise für Donnerstag',
+            10 => 'Vorspeise für Freitag',
+            11 => 'Nachspeise für Montag',
+            12 => 'Nachspeise für Dienstag',
+            13 => 'Nachspeise für Mittwoche',
+            14 => 'Nachspeise für Donnerstag',
+            15 => 'Nachspeise für Freitag'
         );
         if($sku === 'disable'){$buttonStatus = 'disabled'; $disableStyle = 'background-color: grey';}
         $this->getChildBlock("ListProduct")->setPriceClass($priceClass);
