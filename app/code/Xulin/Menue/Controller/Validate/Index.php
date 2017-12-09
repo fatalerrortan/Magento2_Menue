@@ -65,8 +65,11 @@ class Index extends \Magento\Framework\App\Action\Action{
 //        }
 
         foreach ($mainOrders as $order){
-            $this->_logger->addDebug(print_r($this->_helper->getProductAttrLabel($order->getData('nof_animalproducts'), 'nof_animalproducts'), true));
-            $this->_logger->addDebug(print_r($this->_helper->getProductAttrLabel($order->getData('nof_cropproducts'), 'nof_cropproducts'), true));
+            /**
+             * todo: change the position of arguments
+             */
+//            $this->_logger->addDebug(print_r($this->_helper->getProductAttrLabel($order->getData('nof_animalproducts'), 'nof_animalproducts'), true));
+//            $this->_logger->addDebug(print_r($this->_helper->getProductAttrLabel($order->getData('nof_cropproducts'), 'nof_cropproducts'), true));
 
 //            $this->_logger->addDebug(print_r($order->getData('nof_processedfoods'), true));
             $this->_logger->addDebug(print_r("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", true));

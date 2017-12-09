@@ -35,71 +35,117 @@
 ?>
 </table>
 <div id="goal_edit_gui" style="display: none;">
-<form id="attr_def_container"></form>
-<br />
-<div id="add_attr">
-    <center>
-        <button onclick="addAttr()" title="add_attr" type="button" class="action-default scalable save primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" data-ui-id="page-actions-toolbar-save-button" role="button" aria-disabled="false">
-            <span class="ui-button-text">
-                <span>Definition Für "</span><span class="current_label"></span><span>" Hinzufügen</span>
-            </span>
-        </button>
-    </center>
-</div>
+    <form id="attr_def_container">
+
+    </form>
+        <br />
+        <div id="add_attr">
+            <center>
+                <button onclick="addAttr()" title="add_attr" type="button" class="action-default scalable save primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" data-ui-id="page-actions-toolbar-save-button" role="button" aria-disabled="false">
+                    <span class="ui-button-text">
+                        <span>Definition Für "</span><span class="current_label"></span><span>" Hinzufügen</span>
+                    </span>
+                </button>
+            </center>
+        </div>
 </div>
 
 <div id="attr_group_pattern" style="display: none">
-<div class="attr_grounp" style="border-style: outset;">
-    <div class="form-group">
-        <label for="goal_attr">Attribute</label>
-        <select class="form-control" id="goal_attr">
-            <option>Salat</option>
-            <option>Rindfleich</option>
-            <option>Schweinfleich</option>
-            <option>Fisch</option>
-            <option>Eier</option>
-        </select>
+    <div class="attr_wrapper" style="border-style: outset;">
+        <div class="globe_component">
+            <div class="form-group dish_type">
+                <label>Speisetype</label>
+                <select class="form-control">
+                    <option value="main">Hauptspeise</option>
+                    <option value="side">Vor- und Nachspeise</option>
+                </select>
+            </div>
+            <div class="form-group goal_type_container">
+                <label>Definitionstype</label>
+                <select class="form-control" onchange="goalTypeChange(this)">
+                    <option value="null">Wählen Sie einen Definitionstyp bitte!</option>
+                    <option value="overall">Pro Woche</option>
+                    <option value="daily">Pro Speise</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="extra_content"></div>
+
+        <div class="form-group attr_remove" onclick="remove(this)">
+            <ul class='list-group'>
+                <a href="#">
+                    <li class='list-group-item' style="position: absolute; right: 0">
+                        <i class="fa fa-times fa-2x" aria-hidden="true"></i>
+                    </li>
+                </a>
+            </ul>
+        </div>
+        <hr style=" display: block; height: 1px; background-color: #FF6100"/>
     </div>
-    <div class="form-group">
-        <label for="goal_operator">Operator</label>
-        <select class="form-control" id="goal_operator">
-            <option>=</option>
-            <option>></option>
-            <option><</option>
-            <option>>=</option>
-            <option><=</option>
-        </select>
+
+
+    <div class="extra_component">
+        <div class="form-group attr_cate">
+            <label>Kategorien</label>
+            <select class="form-control" onchange="attrCateChange(this)">
+                <!--todo:     later in admin configurable-->
+                <option value="null">Wählen Sie eine Attribut-Kategorie bitte!</option>
+                <option value="nof_animalproducts">Tierprodukte</option>
+                <option value="nof_cropproducts">Pflanzliche Produkte</option>
+                <option value="nof_processedfoods">Verarbeitete Produkte</option>
+            </select>
+        </div>
+
+        <?php
+        $options = $this->getAttrOptions();
+        foreach ($options as $key => $value){
+            echo "<div class='form-group goal_attr ".$key."'>";
+            echo "<label>Attribute</label>";
+            echo "<select class='form-control'>";
+            foreach ($value as $itemLabel){
+                if($itemLabel === " "){continue;}
+                echo "<option value='".$itemLabel."'>$itemLabel</option>";
+            }
+            echo "</select></div>";
+        }
+        ?>
+
+        <div class="form-group goal_operator">
+            <label>Operator</label>
+            <select class="form-control">
+                <option>=</option>
+                <option>></option>
+                <option><</option>
+                <option>>=</option>
+                <option><=</option>
+            </select>
+        </div>
+
+        <div class="form-group goal_value">
+            <label>Wert</label>
+            <input class="form-control" type="number">
+        </div>
     </div>
-    <div class="form-group">
-        <label for="goal_value">Wert</label>
-        <input class="form-control" id="goal_value" type="number">
-    </div>
-    <div class="form-group" onclick="remove(this)">
-        <ul class='list-group'>
-            <a href="#">
-            <li class='list-group-item' style="position: absolute; right: 0">
-                <i class="fa fa-times fa-2x" aria-hidden="true"></i>
-            </li>
-            </a>
-        </ul>
-    </div>
-    <br />
-</div>
 </div>
 
 <script type="text/javascript">
+    var defContainer = {
+        goal: null,
+        defs:[]
+    };
     function edit(element) {
         require(['jquery'], function($){
             var label = $(element).parent().attr('id');
             $("#add_attr span.current_label").html(label);
-            $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+            $("html, body").animate({ scrollTop: $(document).height()}, 1000);
             $("#goal_edit_gui").toggle('slow');
         });
     }
 
     function addAttr() {
         require(['jquery'], function($){
-            var attrGroup = $("#attr_group_pattern").html();
+            var attrGroup = $("#attr_group_pattern div.attr_wrapper")[0].outerHTML;
             $("#attr_def_container").append(attrGroup);
         });
     }
@@ -107,11 +153,61 @@
     function remove(element) {
         require(['jquery'], function($){
             $(element).parent().remove();
-            $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+            $("html, body").animate({ scrollTop: $(document).height()}, 1000);
+        });
+    }
+
+    function goalTypeChange(element) {
+        require(['jquery'], function($){
+            var targetGoalType = $(element).val();
+            var targetArea = $(element).parent().parent().next("div.extra_content");
+            switch (targetGoalType){
+                case 'overall':
+                    targetArea.empty();
+                    var attrCateHtml = $("#attr_group_pattern div.extra_component").find("div.attr_cate")[0].outerHTML;
+                    targetArea.append(attrCateHtml);
+                    break;
+                case 'daily':
+                    targetArea.empty();
+                    var attrToAppend = $("#attr_group_pattern div.extra_component").find("div[class*='"+targetGoalType+"']")[0].outerHTML;
+                    var operator = $("#attr_group_pattern div.extra_component").find("div.goal_operator")[0].outerHTML;
+                    var value = $("#attr_group_pattern div.extra_component").find("div.goal_value")[0].outerHTML;
+                    targetArea.append(attrToAppend);
+                    targetArea.append(operator);
+                    targetArea.append(value);
+                    break;
+                default:
+                    targetArea.empty();
+                    break;
+            }
+        });
+    }
+
+    function attrCateChange(element) {
+        require(['jquery'], function($){
+            var targetArea = $(element).parent().parent();
+            targetArea.find("div[class^='form-group goal_attr'], div[class^='form-group goal_operator'], div[class^='form-group goal_value']").remove();
+            var targetAttrCate = $(element).val();
+            var toAppend =  $("#attr_group_pattern div.extra_component").find("div[class*='"+targetAttrCate+"']")[0].outerHTML;
+            var operator = $("#attr_group_pattern div.extra_component").find("div.goal_operator")[0].outerHTML;
+            var value = $("#attr_group_pattern div.extra_component").find("div.goal_value")[0].outerHTML;
+            targetArea.append(toAppend);
+            targetArea.append(operator);
+            targetArea.append(value);
         });
     }
 
     function save() {
-        alert('just for Test');
+        require(['jquery'], function($){
+            defContainer.goal = $("#add_attr span.current_label").html();
+            $("#attr_def_container div.attr_wrapper").each(function (index, element) {
+                var globeComponent = $(element).find('div.globe_component');
+                var extraComponent = $(element).find('div.extra_content');
+                var def = {test: 123};
+                defContainer.defs.push(def);
+            });
+        });
+        console.log(defContainer);
     }
+
 </script>

@@ -92,20 +92,29 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
             }
         }
         $Muskelaufbau = [
-            0 => [
-                'item' => 'rindfleisch',
-                'orderType' => 'mainOrder',
-                'amount' => 3
+            'overall' => [
+                0 => [
+                    'item' => 'rindfleisch',
+                    'orderType' => 'mainOrder',
+                    'amount' => 3
+                ],
+                1 => [
+                    'item' => 'salat',
+                    'orderType' => 'sideOrder',
+                    'amount' => 2
+                ]
             ],
-            1 => [
-                'item' => 'eier',
-                'orderType' => 'mainOrder',
-                'amount' => 2
-            ],
-            2 => [
-                'item' => 'salat',
-                'orderType' => 'sideOrder',
-                'amount' => 2
+            'daily' => [
+                0 => [
+                    'item' => 'eiweiß',
+                    'rule' => '>',
+                    'content' => '50'
+                ],
+                1 => [
+                    'item' => 'fett',
+                    'rule' => '<',
+                    'content' => 30
+                ]
             ]
         ];
         return $Muskelaufbau;
@@ -116,17 +125,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
      * @param string $attrCode
      * @return array
      */
-    public function getProductAttrLabel($optionIds, $attrCode){
+    public function getProductAttrLabel($attrCode, $withOptions = false, $optionIds = false){
         $labels = [];
         $modiAttrOptions = [];
-        $optionIds = explode(",", $optionIds);
+        if(!$withOptions){
+            return $this->_productAttributeRepository->get($attrCode)->getDefaultFrontendLabel();
+        }
         $attrOptions = $this->_productAttributeRepository->get($attrCode)->getOptions();
         foreach ($attrOptions as $option){
             $modiAttrOptions[$option['value']] = $option['label'];
         }
+        if(!$optionIds){return $modiAttrOptions;}
+        $optionIds = explode(",", $optionIds);
         foreach ($optionIds as $id){
             $labels[] = $modiAttrOptions[$id];
         }
-    return $labels;
+        return $labels;
     }
 }
