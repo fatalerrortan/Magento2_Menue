@@ -48,33 +48,11 @@ class Index extends \Magento\Framework\App\Action\Action{
         $sideOrderSkus =$this->getRequest()->getParam('sideOrders');
 
         $goalOptionId = $this->_customerSession->getCustomer()->getData('nof_goal');
-        $userGoals = $this->_helper->getGoalDefinition($goalOptionId);
-        $result = $this->goalCheck($mainOrderSkus, $sideOrderSkus, $userGoals);
+        $result = $this->goalCheck($mainOrderSkus, $sideOrderSkus, '');
         echo $result;
     }
 
     protected function goalCheck($mainOrderSkus, $sideOrderSkus = null, $goals){
-        $mainOrders = $this->getProductCollection($mainOrderSkus);
-        if(!empty($sideOrderSkus)){
-            $sideOrders = $this->getProductCollection($sideOrderSkus);
-        }
-        $this->_logger->addDebug(print_r($goals, true));
-
-//        foreach ($goals as $goal){
-//
-//        }
-
-        foreach ($mainOrders as $order){
-            /**
-             * todo: change the position of arguments
-             */
-//            $this->_logger->addDebug(print_r($this->_helper->getProductAttrLabel($order->getData('nof_animalproducts'), 'nof_animalproducts'), true));
-//            $this->_logger->addDebug(print_r($this->_helper->getProductAttrLabel($order->getData('nof_cropproducts'), 'nof_cropproducts'), true));
-
-//            $this->_logger->addDebug(print_r($order->getData('nof_processedfoods'), true));
-            $this->_logger->addDebug(print_r("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", true));
-        }
-//        $this->_helper->getProductAttrLabel(null, 'nof_animalproducts');
         $response = [
             'result' => 'incorrect',
             'message' => 'Ihre Auswähle passen nicht Ihrem Ernährungsziel! Bitte täglich Einmal Salat'

@@ -77,5 +77,23 @@
                 </field>
             </group>
         </section>
+        <section id="ngoal" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Ernährungsziele</label>
+            <tab>nextorder_extension</tab>
+            <resource>Nextorder_Menue::config</resource>
+            <group id="ngoal_group_1" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Attribute für Ziel-Definition</label>
+                <field id="ngoal_group_1_field_1" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Attribute(Code) für Definition Pro Woche</label>
+                    <validate>validate-no-empty</validate>
+                    <comment><![CDATA[Eingetragene Attribute müssen bereits mit dem Type "select" bereits in Shop definiert werden. Eintäge müssen mit "," getrennt werden. z.B. Attr1, Attr2,....,Attr3]]></comment>
+                </field>
+                <field id="ngoal_group_1_field_2" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Attribute(Code) für Definition Pro Speise</label>
+                    <validate>validate-no-empty</validate>
+                    <comment><![CDATA[Eingetragene Attribute sollen Gehalt eines Elements pro Speise beschreiben. Eintäge müssen mit "," getrennt werden. z.B. Attr1, Attr2,....,Attr3]]></comment>
+                </field>
+            </group>
+        </section>
     </system>
 </config>

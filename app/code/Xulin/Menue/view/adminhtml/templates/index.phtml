@@ -12,19 +12,33 @@
         <th scope="col"><h3>Verarbeiten</h3></th>
     </tr>
 <?php
-    $labels = $this->getGoalsTable();
+    $goalDefs = $this->_helper->getGoalDefinitions();
     $tableContent = '';
-    foreach ($labels as $label){
+    foreach ($goalDefs as $label => $defs){
+        $defContent = null;
+        if(empty($defs)){
+            $defContent = "<li class='list-group-item'><b>Keine Definition</b></li>";
+        }else{
+            foreach ($defs as $def){
+
+                $dishType = $def['dishType'] === 'main' ? "Hauptspeise" : "Vor- und Nachspeise";
+                $goalType = $def['goalType'] === 'overall' ?  "Woche" : "Speise";
+
+
+                $defContent .= "<li class='list-group-item'>";
+                $defContent .= "<span style='color: #FF6100'><b>".$def['goalAttr']."</b></span>";
+                $defContent .= " <b>Als</b> ". $dishType;
+                $defContent .= " <b>Pro</b> ". $goalType;
+                $defContent .= " <b>".$def['goalOperator']."</b> ".$def['goalValue'];
+                $defContent .= "</li>";
+            }
+        }
         $tableContent .="
             <tr id='".$label."'>
                 <td><h4>".$label."</h4></td>
                 <td>
                   <ul class='list-group'>
-                    <li class='list-group-item'>Regel 1 > 3</li>
-                    <li class='list-group-item'>Regel 2 > 4</li>
-                    <li class='list-group-item'>Regel 3 > 5</li>
-                    <li class='list-group-item'>Regel 4 > 6</li>
-                    <li class='list-group-item'>Regel 5 > 7</li>
+                    ".$defContent."
                   </ul>
                 </td>
                 <td onclick='edit(this)'><a href='#'><i class='fa fa-cog fa-2x'></i></a></td>
@@ -60,7 +74,7 @@
                     <option value="side">Vor- und Nachspeise</option>
                 </select>
             </div>
-            <div class="form-group goal_type_container">
+            <div class="form-group goal_type">
                 <label>Definitionstype</label>
                 <select class="form-control" onchange="goalTypeChange(this)">
                     <option value="null">Wählen Sie einen Definitionstyp bitte!</option>
@@ -130,10 +144,6 @@
 </div>
 
 <script type="text/javascript">
-    var defContainer = {
-        goal: null,
-        defs:[]
-    };
     function edit(element) {
         require(['jquery'], function($){
             var label = $(element).parent().attr('id');
@@ -198,16 +208,52 @@
     }
 
     function save() {
-        require(['jquery'], function($){
-            defContainer.goal = $("#add_attr span.current_label").html();
+        var defContainer = {
+            _goal: null,
+            _defs:[]
+        };
+        require(['jquery', 'jquery/ui', 'Magento_Ui/js/modal/modal'], function($){
+            defContainer._goal = $("#add_attr span.current_label").html();
+            var baseUrl = "<?php echo $this->getUrl('menue/goal/save'); ?>";
             $("#attr_def_container div.attr_wrapper").each(function (index, element) {
                 var globeComponent = $(element).find('div.globe_component');
                 var extraComponent = $(element).find('div.extra_content');
-                var def = {test: 123};
-                defContainer.defs.push(def);
+                var def = {
+                    _dishType: globeComponent.find("div.dish_type select").val(),
+                    _goalType: globeComponent.find("div.goal_type select").val(),
+                    _attrCate: typeof extraComponent.find("div.attr_cate select").val() != 'undefined' ?
+                        extraComponent.find("div.attr_cate select").val() : 'disable',
+                    _goalAttr: extraComponent.find("div.goal_attr select").val(),
+                    _goalOperator: extraComponent.find("div.goal_operator select").val(),
+                    _goalValue: extraComponent.find("div.goal_value input").val()
+                };
+                defContainer._defs.push(def);
+            });
+            var postData = new FormData();
+            postData.append("goalDefs", JSON.stringify(defContainer));
+            postData.append("form_key", window.FORM_KEY);
+            $.ajax({
+                type: "POST",
+                url: baseUrl,
+                data: postData,
+                contentType: false,
+                processData: false,
+                dataType: "text",
+                success: function(data){
+                    //todo: render a modal to confirm that save process
+                    var options = {
+                        title: 'Nextorder',
+                        autoOpen: true,
+                        responsive: true,
+                        closed: function () {
+                            console.log("modal closed");
+                            window.location.reload();
+                        }
+                    }
+                    $("<div />").html("<h2>Abgespeichert!</h2>").modal(options);
+                }
             });
         });
         console.log(defContainer);
     }
-
 </script>

@@ -13,6 +13,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
     protected $_eavAttributeRepository;
     protected $_productAttributeRepository;
     protected $_logger;
+    protected $_nGoalsFactory;
     /**
      * Data constructor.
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -22,14 +23,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepository,
         \Magento\Catalog\Model\Product\Attribute\Repository $productAttributeRepository,
+        \Nextorder\Menue\Model\NgoalsFactory $ngoalsFactory,
         \Psr\Log\LoggerInterface $logger
     ){
         $this->_scopeConfig = $scopeConfig;
         $this->_eavAttributeRepository = $eavAttributeRepository;
         $this->_productAttributeRepository = $productAttributeRepository;
         $this->_logger = $logger;
+        $this->_nGoalsFactory = $ngoalsFactory;
     }
-    /**
+    /** get extension configuration from admin/stores/configurations/nextorder/Wochenmenü
      * @return array
      */
     public function getAdminConfig(){
@@ -50,6 +53,17 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
                 )
         ];
     }
+
+    /**
+     * get extension configuration from admin/stores/configurations/nextorder/Ernährungsziele
+     * @return array
+     */
+    public function getDefAttrs(){
+        return [
+            'overall' => $this->_scopeConfig->getValue('ngoal/ngoal_group_1/ngoal_group_1_field_1'),
+            'daily' => $this->_scopeConfig->getValue('ngoal/ngoal_group_1/ngoal_group_1_field_2')
+        ];
+    }
     /**
      * @return array
      */
@@ -66,7 +80,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
         $serializedArray = file_get_contents($this->df_module_dir("Nextorder_Menue")."/".$dir."/".$file);
         return unserialize($serializedArray);
     }
-
     /**
      * @param string $moduleName
      * @param string $type
@@ -79,51 +92,42 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
         $reader = $om->get('Magento\Framework\Module\Dir\Reader');
         return $reader->getModuleDir($type, $moduleName);
     }
-
-    public function getGoalDefinition($optionId = null){
+    /** get Nutrition goal label
+     * @param null $optionId | true => get label of a single goal
+     * @return array|mixed
+     */
+    public function getGoalLabels($optionId = null)
+    {
         $attributes = $this->_eavAttributeRepository->get(Customer::ENTITY, 'nof_goal');
         $options = $attributes->getSource()->getAllOptions(false);
-        $label = null;
-        if(empty($optionId)){return $options;}
-        foreach ($options as $option){
-            if($option['value'] === $optionId){
-                $label = $option['label'];
-                break;
-            }
+        $goalAttrs = [];
+        foreach ($options as $option) {
+            $goalAttrs[$option['value']] = $option['label'];
         }
-        $Muskelaufbau = [
-            'overall' => [
-                0 => [
-                    'item' => 'rindfleisch',
-                    'orderType' => 'mainOrder',
-                    'amount' => 3
-                ],
-                1 => [
-                    'item' => 'salat',
-                    'orderType' => 'sideOrder',
-                    'amount' => 2
-                ]
-            ],
-            'daily' => [
-                0 => [
-                    'item' => 'eiweiß',
-                    'rule' => '>',
-                    'content' => '50'
-                ],
-                1 => [
-                    'item' => 'fett',
-                    'rule' => '<',
-                    'content' => 30
-                ]
-            ]
-        ];
-        return $Muskelaufbau;
+        if(empty($optionId)){return $goalAttrs;}
+        return $goalAttrs[$optionId];
     }
 
     /**
-     * @param string $optionIds
-     * @param string $attrCode
+     * get nutrition goal definitions which are defined in admin/products/Ernährungsziele
      * @return array
+     */
+    public function getGoalDefinitions(){
+        $defs = [];
+        $goalLabels = $this->getGoalLabels();
+        $nGoalsModel = $this->_nGoalsFactory->create();
+        foreach ($goalLabels as $label){
+            $nGoalsCollection = $nGoalsModel->getCollection();
+            $defs[$label] = $nGoalsCollection->addFieldToSelect('*')->addFieldToFilter('goal', $label)->load()->getData();
+        }
+//        $this->_logger->addDebug(print_r($defs, true));
+        return $defs;
+    }
+    /** get product attribute label
+     * @param $attrCode
+     * @param bool $withOptions | true => get related option labels if the target attr was defined as a select
+     * @param bool $optionIds | true => get single option label by option id
+     * @return array|null|string
      */
     public function getProductAttrLabel($attrCode, $withOptions = false, $optionIds = false){
         $labels = [];
