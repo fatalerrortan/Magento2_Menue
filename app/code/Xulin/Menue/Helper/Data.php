@@ -53,7 +53,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
                 )
         ];
     }
-
     /**
      * get extension configuration from admin/stores/configurations/nextorder/Ernährungsziele
      * @return array
@@ -70,7 +69,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
     public function getBundleProductSku(){
         return $this->_scopeConfig->getValue('menu/menu_group_1/menu_group_1_field_1');
     }
-
     /**
      * @param string $dir
      * @param string $file
@@ -92,29 +90,28 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
         $reader = $om->get('Magento\Framework\Module\Dir\Reader');
         return $reader->getModuleDir($type, $moduleName);
     }
-    /** get Nutrition goal label
+    /** get customer attribute options label
      * @param null $optionId | true => get label of a single goal
      * @return array|mixed
      */
-    public function getGoalLabels($optionId = null)
-    {
-        $attributes = $this->_eavAttributeRepository->get(Customer::ENTITY, 'nof_goal');
+    public function getCustomerAttrLabel($attrCode, $optionId = null){
+        $attributes = $this->_eavAttributeRepository->get(Customer::ENTITY, $attrCode);
         $options = $attributes->getSource()->getAllOptions(false);
         $goalAttrs = [];
         foreach ($options as $option) {
+//            $this->_logger->addDebug(print_r($option, true));
             $goalAttrs[$option['value']] = $option['label'];
         }
         if(empty($optionId)){return $goalAttrs;}
         return $goalAttrs[$optionId];
     }
-
     /**
      * get nutrition goal definitions which are defined in admin/products/Ernährungsziele
      * @return array
      */
     public function getGoalDefinitions(){
         $defs = [];
-        $goalLabels = $this->getGoalLabels();
+        $goalLabels = $this->getCustomerAttrLabe('nof_goal');
         $nGoalsModel = $this->_nGoalsFactory->create();
         foreach ($goalLabels as $label){
             $nGoalsCollection = $nGoalsModel->getCollection();

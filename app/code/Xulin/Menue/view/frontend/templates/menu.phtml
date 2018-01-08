@@ -32,7 +32,8 @@
     var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":"",
         "var_6":"disable", "var_7":"disable", "var_8":"disable", "var_9":"disable", "var_10":"disable",
         "var_11":"disable", "var_12":"disable", "var_13":"disable", "var_14":"disable", "var_15":"disable"};
-    var side_menu_status = {render: 'before', hide: 'after'}
+    var side_menu_status = {render: 'before', hide: 'after'};
+    var orders_to_post;
     var gui_status = {status: 1};
     var ordered_menu = null;
     var base_url = "<?php echo $this->getUrl(); ?>";
@@ -247,13 +248,19 @@ require(['jquery'], function($) {
 //            $("#diy_table").html(loading);
             var postData = new FormData();
             var data_to_post = "";
+            var isSidemenuDisplay = $("#side_dish_title").css('display');
+            var index = 0;
             $.each(order_container, function (key, value) {
+                if((isSidemenuDisplay === 'none') && (index > 5)){
+                    data_to_post = data_to_post + 'disable,';
+                    index++;
+                    return;
+                }
+                index++;
                 if(key == "amount"){return;}
                 data_to_post = data_to_post + value + ",";
             });
-            data_to_post = data_to_post.substring(0, data_to_post.length -1);
-            postData.append("mainOrders", data_to_post);
-            postData.append("sideOrders", null);
+            postData.append("orders", data_to_post.substring(0, data_to_post.length -1));
             $.ajax({
                 type: "POST",
                 url: base_url+"index.php/menue/validate/index",
@@ -263,7 +270,7 @@ require(['jquery'], function($) {
                 dataType: "text",
                 success: function(data){
                     data = $.parseJSON(data);
-                    if(data.result != 'correct'){
+                    if(data.result !== 'correct'){
                         var options = {
                             title: 'Bessermittag',
                             autoOpen: true,
@@ -304,10 +311,11 @@ require(['jquery'], function($) {
 
     function toCart() {
         require(['jquery'], function($) {
+
             var data_to_post = "";
             var isSidemenuDisplay = $("#side_dish_title").css('display');
             var index = 0;
-            jQuery.each(order_container, function (key, value) {
+            $.each(order_container, function (key, value) {
                 if((isSidemenuDisplay === 'none') && (index > 5)){
                     data_to_post = data_to_post + 'disable,';
                     index++;
@@ -317,11 +325,9 @@ require(['jquery'], function($) {
                 if(key == "amount"){return;}
                 data_to_post = data_to_post + value + ",";
             });
-            data_to_post = data_to_post.substring(0, data_to_post.length -1);
             var postData = new FormData();
-            postData.append("menu_orders", data_to_post);
-            console.log(data_to_post);
-            jQuery.ajax({
+            postData.append("menu_orders", data_to_post.substring(0, data_to_post.length -1));
+            $.ajax({
                 type: "POST",
                 url: base_url+"index.php/menue/index/cart",
                 data: postData,
@@ -335,6 +341,26 @@ require(['jquery'], function($) {
                 }
             });
         });
+    }
+    function getCurrentOrders() {
+         var orders = '';
+         require(['jquery'], test = function($) {
+            var data_to_post = "";
+            var isSidemenuDisplay = $("#side_dish_title").css('display');
+            var index = 0;
+            $.each(order_container, function (key, value) {
+                if((isSidemenuDisplay === 'none') && (index > 5)){
+                    data_to_post = data_to_post + 'disable,';
+                    index++;
+                    return;
+                }
+                index++;
+                if(key == "amount"){return;}
+                data_to_post = data_to_post + value + ",";
+            });
+           orders =  data_to_post.substring(0, data_to_post.length -1);
+        });
+        console.log(orders);
     }
 
     function renderSideMenu(element) {

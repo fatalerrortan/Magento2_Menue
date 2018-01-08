@@ -19,6 +19,15 @@ class Variant extends \Magento\Framework\App\Action\Action
 
     public function execute(){
 
+        $test = 123;
+        $str = 'test';
+//        echo $.'test';
+
+//        $test = array(
+//            0=> 123,
+//            1=> 456,
+//            2=> $test[0] + $test[1]
+//        );
 //        $mainOrders = [mo1, mo2, mo3 …….mon];
 //        $sideOrders = [so1, so2, so3 ...., son];
 //        $goals = [g1, g2, g3 …...gn];
