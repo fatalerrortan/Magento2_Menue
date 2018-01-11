@@ -300,14 +300,36 @@ require(['jquery'], function($) {
                                 }
                             ]
                         };
-                        $('<div />').html("<h2>JUST FOR TEST</h2>").modal(options);
-                        console.log(data);
+                        $('<div />').html(generateErrorReport(data)).modal(options);
                     }else {
                         toCart();
                     }
+                    console.log(data);
                 }
             });
         });
+    }
+
+    function generateErrorReport(error) {
+            var week = {mon:'Montag',tue:'Dienstag',wed:'Mittwoche',thu:'Donnerstag',fri:'Freitag'};
+            var report = '<h3>Ihr Ernährungsziel: '+ error.goal.toUpperCase()+'</h3><ul>';
+            if(error.type === 'overall'){
+                for(var key in error.report){
+                    report = report + '<li style="color: #0A246A">'+
+                        error.report[key].attr+' '+error.report[key].operator+' <b style="color: green">'+error.report[key].required
+                        +'</b> ist erwünscht. (Ihr '+ error.report[key].attr +': <b style="color: red">'+ error.report[key].error_value +'</b>)</li>';
+                }
+            }else {
+                // for(var day in error.report){
+                //    report = report + '<li><h5>'+week[day]+'</h5><ul>';
+                //     for(var key in error.report[day]){
+                //         report = report + '<li style="color: #0A246A">'+ error.report[day][key] +'</li>'
+                //     }
+                //     report = report + '</ul></li>';
+                // }
+            }
+            report = report + '</ul>';
+           return report;
     }
 
     function toCart() {
@@ -342,26 +364,6 @@ require(['jquery'], function($) {
                 }
             });
         });
-    }
-    function getCurrentOrders() {
-         var orders = '';
-         require(['jquery'], test = function($) {
-            var data_to_post = "";
-            var isSidemenuDisplay = $("#side_dish_title").css('display');
-            var index = 0;
-            $.each(order_container, function (key, value) {
-                if((isSidemenuDisplay === 'none') && (index > 5)){
-                    data_to_post = data_to_post + 'disable,';
-                    index++;
-                    return;
-                }
-                index++;
-                if(key == "amount"){return;}
-                data_to_post = data_to_post + value + ",";
-            });
-           orders =  data_to_post.substring(0, data_to_post.length -1);
-        });
-        console.log(orders);
     }
 
     function renderSideMenu(element) {

@@ -94,8 +94,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
      * @param null $optionId | true => get label of a single goal
      * @return array|mixed
      */
-    public function getCustomerAttrLabel($attrCode, $optionId = null){
+    public function getCustomerAttrLabel($attrCode, $withOptions = false, $optionId = null){
         $attributes = $this->_eavAttributeRepository->get(Customer::ENTITY, $attrCode);
+        if(!$withOptions){return $attributes->getDefaultFrontendLabel();}
         $options = $attributes->getSource()->getAllOptions(false);
         $goalAttrs = [];
         foreach ($options as $option) {
