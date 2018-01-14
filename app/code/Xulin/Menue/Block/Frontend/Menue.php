@@ -23,10 +23,6 @@ class Menue extends \Magento\Framework\View\Element\Template{
     protected $_remoteSideSkus;
 //    public $_session_customer;
 
-    /**
-     * @param Context $context
-     * @param MenudataFactory $modelMenudataFactory
-     */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context, //parent block injection
         \Nextorder\Menue\Helper\Data $helper, //helper injection
@@ -48,10 +44,12 @@ class Menue extends \Magento\Framework\View\Element\Template{
         $this->_modelMenudataFactory = $modelMenudataFactory;
         parent::__construct($context, $data);
     }
-
     /**
      * @param bool $isSideMenu
+     * @param bool $isAppetizer
      * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function loadProductHtmlBySku($isSideMenu = false, $isAppetizer = false){
         $menudataModel = $this->_modelMenudataFactory->create();
@@ -261,41 +259,10 @@ class Menue extends \Magento\Framework\View\Element\Template{
         return $html;
     }
     /**
-     * @return null
-     */
-    public function loadAddtionalProductsBySkus(){
-//            $menudataModel = $this->_modelMenudataFactory->create();
-//            $customerMenu = $menudataModel->getMenuDataByCustomerId($this->_customerSession->getCustomerId())->getData();
-//            $bundles = $this->_helper->getSerializedData('inc','bundleDataSource.txt');
-//            $remoteSkus = $this->_remoteSkus;
-//            $authDataToWP = $this->userValidate();
-            switch ($this->_currentUserStatus){
-                case "NO_LOGIN":
-                    return "<center><h3>
-                    Bestellen Sie das Wochenmenü mit Ihrem personalisierten Ernährungsziel nach 
-                    <a href='".$this->getUrl('customer/account/login')."'>Einloggen</a>
-                    </h3></center>";
-                    break;
-                case "FIRST_LOGIN_WITHOUT_WP":
-
-                    break;
-                case "FIRST_LOGIN_WITH_WP":
-
-                    break;
-                case "LOGIN_WITH_WP":
-
-                    break;
-                case "LOGIN_WITHOUT_WP":
-
-                    break;
-                default:
-                    return null;
-                    break;
-            }
-    }
-    /**
      * validate whether the user is bound to a company
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function userValidate(){
         $currentCustomer = $this->_customerSession;
@@ -421,6 +388,7 @@ class Menue extends \Magento\Framework\View\Element\Template{
                     </div>
                     <div>
                         <button class='diy_button action primary' onclick='menuChange(this)' index='".$index."' price_class='".$priceClass."' day='".$index."' ".$buttonStatus.">Austausch</button>
+                        <div class='reload_comment' style='color: #2b542c'></div>
                         <div class='list_container'>
                         ".$this->getChildHtml('ListProduct',false)."
                         </div>
@@ -469,13 +437,29 @@ class Menue extends \Magento\Framework\View\Element\Template{
             'raw_end' => $endWeek
         );
     }
-
-//    public function getOrderDate_v2(){
-//        $dayOfWeekId = date('w');
-//        switch ($dayOfWeekId){
-//            case $dayOfWeekId < 2:
-//                break;
-//            case $dayOfWeekId > 2;
-//        }
-//    }
+    /**
+     * @return array
+     */
+    public function getNutritionGoalLabel(){
+        if ($this->_customerSession->isLoggedIn()) {
+            $attrCode = $this->_customerSession->getCustomer()->getData('nof_goal');
+            if(empty($attrCode)){
+                return [false,"Wollen Sie ein Ernährungsziel für Ihr Mittagessen nehmen? <a href='".$this->getUrl('customer/account/edit')."' target='_blank'>Einfach hier Klick</a>"];
+            }
+            $goalLabel = $this->_helper->getCustomerAttrLabel('nof_goal', true, $attrCode);
+            $hint = $this->_helper->getNutritionGoalWithString(strtolower($goalLabel))['hint'];
+            return [
+                true,
+                "<ul><li>Ihr aktuell Ernährungsziel： <b style='color: green'>".$goalLabel."</b>; Wollen Sie ein anderes Ernährungsziel probieren? <a href='".$this->getUrl('customer/account/edit')."'>Einfach hier Klicken</a>
+                </li><li>".$hint." <a href='".$this->getUrl('customer/account/edit')."' target='_blank'>Bitte stellen Sie sicher hier</a></li></ul>"
+            ];
+        }
+    }
+    /**
+     * get weight of current user
+     * @return mixed
+     */
+    public function getFormatedWeight(){
+        return $this->_customerSession->getCustomer()->getData('body_weight');
+    }
 }

@@ -144,4 +144,102 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
         }
         return $labels;
     }
+
+    public function getNutritionGoalWithString($goal){
+        $arrayString = [
+            'abnehmen' => [
+                'overall' => [
+                    0 => [
+                        'attr' => 'bmi',
+                        'type' => 'customer',
+                        'operator' => '>',
+                        'value' => "\$this->_preConstants['safe_bmi_limit']",
+                        'unit' => '',
+                        'error_handle' => 'none',
+                    ]
+                ],
+                'perDish' => [
+                    0 => [
+                        'attr' => 'nof_calories',
+                        'type' => 'product',
+                        'operator' => '<=',
+                        'value' => "\$this->_preConstants['weight_coeff']
+                            * \$user['body_weight'] * \$this->_preConstants['energy_lunch_ratio']",
+                        'unit' => 'kcal',
+                        'error_handle' => 'reload'
+                    ]
+                ],
+                'hint' => 'Körpergröße(m), Körpergewicht(kg) sind die kritischen Parameter zur Prüfung Ihrer Bestellung!'
+            ],
+            'zunehmen' => [
+                'overall' => [],
+                'perDish' => [
+                    0 => [
+                        'attr' => 'nof_calories',
+                        'type' => 'product',
+                        'operator' => '>=',
+                        'value' => "\$this->_preConstants['weight_coeff']
+                            * \$user['body_weight'] * (1 + 0.2 / 10 * (\$user['target_weight']- \$user['body_weight']))
+                            * \$this->_preConstants['energy_lunch_ratio']",
+                        'unit' => 'kcal',
+                        'error_handle' => 'complement'
+                    ]
+                ],
+                'hint' => 'Körpergewicht(kg), Zielgewicht(kg) sind die kritischen Parameter zur Prüfung Ihrer Bestellung!'
+            ],
+            'gesunde ernährung' => [
+                'overall' => [],
+                'perDish' => [
+                    0 => [
+                        'attr' => 'nof_calories',
+                        'type' => 'product',
+                        'operator' => '>=',
+                        'value' => "\$this->_preConstants['weight_coeff'] * \$user['body_weight']
+                            * \$user['work_intensity'] * \$this->_preConstants['energy_lunch_ratio']",
+                        'unit' => 'kcal',
+                        'error_handle' => 'complement'
+                    ]
+                ],
+                'hint' => 'Körpergewicht(kg), Arbeitsintensität sind die kritischen Parameter zur Prüfung Ihrer Bestellung!'
+            ],
+            'muskelaufbau' => [
+                'overall' => [],
+                'perDish' => [
+                    0 => [
+                        'attr' => 'nof_carbs',
+                        'type' => 'product',
+                        'operator' => '<=',
+                        'value' => 5,
+                        'unit' => 'g',
+                        'error_handle' => 'reload'
+                    ],
+                    1 => [
+                        'attr' => 'nof_protein',
+                        'type' => 'product',
+                        'operator' => '>=',
+                        'value' => "\$this->_preConstants['weight_coeff'] * \$user['body_weight']
+                            * \$user['work_intensity'] * \$this->_preConstants['energy_lunch_ratio']
+                            * \$this->_preConstants['keto_nutritional_ratio']['nof_protein']
+                            * \$this->_preConstants['calories_grams_rate']['nof_protein']",
+//                        'value' => 10,
+                        'unit' => 'g',
+                        'error_handle' => 'complement'
+                    ],
+                    2 => [
+                        'attr' => 'nof_fat',
+                        'type' => 'product',
+                        'operator' => '>=',
+                        'value' => "\$this->_preConstants['weight_coeff'] * \$user['body_weight']
+                            * \$user['work_intensity'] * \$this->_preConstants['energy_lunch_ratio']
+                            * \$this->_preConstants['keto_nutritional_ratio']['nof_fat']
+                            * \$this->_preConstants['calories_grams_rate']['nof_fat']",
+                        'unit' => 'g',
+                        'error_handle' => 'complement'
+                    ]
+                ],
+                'hint' => 'Körpergewicht(kg), Arbeitsintensität sind die kritischen Parameter zur Prüfung Ihrer Bestellung!'
+            ]
+        ];
+    return $arrayString[$goal];
+    }
 }

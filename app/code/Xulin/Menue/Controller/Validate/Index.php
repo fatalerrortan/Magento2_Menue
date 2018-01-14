@@ -13,6 +13,7 @@ class Index extends \Magento\Framework\App\Action\Action{
     protected $_customerSession;
     protected $_helper;
     protected $_productFactory;
+    protected $_currentNutritionGoal;
     protected $_preConstants = array(
         'weight_coeff' => 24,
         'energy_lunch_ratio' => 0.4,
@@ -46,14 +47,20 @@ class Index extends \Magento\Framework\App\Action\Action{
 //        $this->_logger->addDebug(print_r($this->getRequest()->getParam('orders'), true));
         $orders = $this->getModifiedOrders($this->getRequest()->getParam('orders'));
         // construct Argument 2: user info
-        $user = $this->getCustomerInfo();
+        $weight = $this->getRequest()->getParam('weight');
+        $user = $this->getCustomerInfo($weight);
         // construct argument 3: nutrition goal definition
         $goal = $this->getNutritionGoal($user);
         $result = $this->nutritionAlgorithm($orders, $user, $goal);
         echo $result;
     }
-
-
+    /**
+     * nutrition algorithm
+     * @param $orders
+     * @param $user
+     * @param $goal
+     * @return string
+     */
     protected function nutritionAlgorithm($orders, $user, $goal){
         /**
          * Overall map worker
@@ -73,12 +80,14 @@ class Index extends \Magento\Framework\App\Action\Action{
                 $result = $this->getCompareResult($operator, $leftValue, $rightValue);
                 if(!$result){
                     $this->_isOverallErrorExists = true;
-//                    return $rule['error']['message'];
                     $error = [
-                        'attr' => $this->_helper->getCustomerAttrLabel($rule['attr'], false),
+                        'attr' => $rule['attr'], false,
+                        'label' => $this->_helper->getCustomerAttrLabel($rule['attr'], false),
                         'error_value' => $leftValue,
+                        'unit' => $rule['unit'],
                         'operator' => $operator,
-                        'required' => $rightValue
+                        'required' => $rightValue,
+                        'handler' => $rule['error_handle'],
                     ];
                     return $error;
                 }
@@ -104,7 +113,6 @@ class Index extends \Magento\Framework\App\Action\Action{
                 $leftValue = $this->getSumLeftValue($rule['attr'], $products);
                 $rightValue = round($rule['value'], 2);
                 $operator = $rule['operator'];
-
 //                $this->_logger->addDebug(print_r(
 //                    'Compare: '.$rule['attr'].
 //                    ' Left: '.$leftValue. " Operator: ".$operator ." Right: ".$rightValue
@@ -113,13 +121,15 @@ class Index extends \Magento\Framework\App\Action\Action{
                 if(!$result){
                     $this->_isPerDishErrorExists = true;
                     $error = [
-                        'attr' => $this->_helper->getProductAttrLabel($rule['attr']),
+                        'attr' => $rule['attr'],
+                        'label' => $this->_helper->getProductAttrLabel($rule['attr']),
                         'error_value' => $leftValue,
+                        'unit' => $rule['unit'],
                         'operator' => $operator,
-                        'required' => $rightValue
+                        'required' => $rightValue,
+                        'handler' => $rule['error_handle'],
                     ];
                     return $error;
-//                    return $rule['error']['message'];
                 }
             }, $goal['perDish']);
 //            $this->_logger->addDebug(print_r('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', true));
@@ -136,7 +146,7 @@ class Index extends \Magento\Framework\App\Action\Action{
                     'messages' => $overallMap
                 ];
 //                $this->_logger->addDebug(print_r($error, true));
-                return $this->generateErrorReport($error);
+                return $this->formatErrorReport($error);
             }
         }
         $perDishMap = array_map($perDishWorker, $orders);
@@ -146,7 +156,7 @@ class Index extends \Magento\Framework\App\Action\Action{
                 'messages' => $perDishMap
             ];
 //            $this->_logger->addDebug(print_r($error, true));
-            return $this->generateErrorReport($error, false);
+            return $this->formatErrorReport($error, false);
         }else{
             $response = [
                 'result' => 'correct'
@@ -213,15 +223,25 @@ class Index extends \Magento\Framework\App\Action\Action{
     }
     /**
      * get customer data for the second argument of the nutrition algorithm
+     * @param $currentWeight
      * @return array
+     * @throws \Exception
      */
-    protected function getCustomerInfo(){
+    protected function getCustomerInfo($currentWeight){
         $customer = $this->_customerSession->getCustomer();
+        $newWeight = floatval(str_replace(',','.',$currentWeight));
+        $prevWeight = floatval(str_replace(',','.',$customer->getData('body_weight')));
+        if($newWeight === $prevWeight){
+            $weight = $prevWeight;
+        }else{
+            $weight = $newWeight;
+            $customer->setData('body_weight', $currentWeight)->save();
+        }
         $user = [
             'nof_goal' => strtolower($this->_helper->getCustomerAttrLabel('nof_goal', true, $customer->getData('nof_goal'))),
-            'body_weight' => $customer->getData('body_weight'),
-            'target_weight' => $customer->getData('target_weight'),
-            'body_height' => $customer->getData('body_height'),
+            'body_weight' => $weight,
+            'target_weight' => floatval(str_replace(',','.',$customer->getData('target_weight'))),
+            'body_height' => floatval(str_replace(',','.',$customer->getData('body_height'))),
             'bmi' => $this->getBMI($customer->getData('body_weight'), $customer->getData('body_height')),
             'work_intensity' => $this->getWorkIntensityValue($customer->getData('work_intensity'))
         ];
@@ -233,138 +253,18 @@ class Index extends \Magento\Framework\App\Action\Action{
      * @return mixed
      */
     protected function getNutritionGoal($user){
-        $nutritionGoals = [
-            'abnehmen' => [
-                'overall' => [
-                    0 => [
-                        'attr' => 'bmi',
-                        'type' => 'customer',
-                        'operator' => '>',
-                        'value' => $this->_preConstants['safe_bmi_limit'],
-                        'error' => [
-                            'message' => 'Ihr BMI = '.$user['bmi'].'; Abnehmen ist nötig nur wenn BMI > '.$this->_preConstants['safe_bmi_limit'],
-                        ]
-                    ]
-                ],
-                'perDish' => [
-                    0 => [
-                        'attr' => 'nof_calories',
-                        'type' => 'product',
-                        'operator' => '<=',
-                        'value' => $this->_preConstants['weight_coeff']
-                            * $user['body_weight'] * $this->_preConstants['energy_lunch_ratio'],
-                        'error' => [
-                            'message' => 'kaloriengehalt <= '
-                                .$this->_preConstants['weight_coeff']
-                                * $user['body_weight'] * $this->_preConstants['energy_lunch_ratio'].' kcal ist erwünscht.'
-                        ]
-                    ]
-                ]
-            ],
-            'zunehmen' => [
-                'overall' => [],
-                'perDish' => [
-                    0 => [
-                        'attr' => 'nof_calories',
-                        'type' => 'product',
-                        'operator' => '>=',
-                        'value' => $this->_preConstants['weight_coeff']
-                            * $user['body_weight'] * (1 + 0.2 / 10 * ($user['target_weight']- $user['body_weight']))
-                            * $this->_preConstants['energy_lunch_ratio'],
-                        'error' => [
-                            'message' => 'Kaloriengehalt >='
-                            .$this->_preConstants['weight_coeff']
-                                * $user['body_weight'] * (1 + 0.2 / 10 * ($user['target_weight']- $user['body_weight']))
-                                * $this->_preConstants['energy_lunch_ratio'].'kcal ist erwünscht'
-                        ]
-                    ]
-                ]
-            ],
-            'gesunde ernährung' => [
-                'overall' => [],
-                'perDish' => [
-                    0 => [
-                        'attr' => 'nof_calories',
-                        'type' => 'product',
-                        'operator' => '>=',
-                        'value' => $this->_preConstants['weight_coeff'] * $user['body_weight']
-                            * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio'],
-                        'error' => [
-                            'message'=>  'Kaloriengehalt >='
-                                .$this->_preConstants['weight_coeff'] * $user['body_weight']
-                                * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio'].' kcal ist erwünscht.'
-                        ]
-                    ]
-                ]
-            ],
-            'muskelaufbau' => [
-                'overall' => [],
-                'perDish' => [
-                    0 => [
-                        'attr' => 'nof_calories',
-                        'type' => 'product',
-                        'operator' => '>=',
-                        'value' => $this->_preConstants['weight_coeff'] * $user['body_weight']
-                            * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio'],
-                        'error' => [
-                            'message' => 'Kaloriengehalt >= '
-                            .$this->_preConstants['weight_coeff'] * $user['body_weight']
-                                * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio'].' kcal ist erwünscht.'
-                        ]
-                    ],
-                    1 => [
-                        'attr' => 'nof_carbs',
-                        'type' => 'product',
-                        'operator' => '<=',
-                        'value' => $this->_preConstants['weight_coeff'] * $user['body_weight']
-                            * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio']
-                            * $this->_preConstants['keto_nutritional_ratio']['nof_carbs']
-                            * $this->_preConstants['calories_grams_rate']['nof_carbs'],
-                        'error' => [
-                            'message' => 'kohlenhydratgehalt <= '
-                            .$this->_preConstants['weight_coeff'] * $user['body_weight']
-                                * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio']
-                                * $this->_preConstants['keto_nutritional_ratio']['nof_carbs']
-                                * $this->_preConstants['calories_grams_rate']['nof_carbs'].' g ist erwünscht.'
-                        ]
-                    ],
-                    2 => [
-                        'attr' => 'nof_protein',
-                        'type' => 'product',
-                        'operator' => '>=',
-                        'value' => $this->_preConstants['weight_coeff'] * $user['body_weight']
-                            * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio']
-                            * $this->_preConstants['keto_nutritional_ratio']['nof_protein']
-                            * $this->_preConstants['calories_grams_rate']['nof_protein'],
-                        'error' => [
-                            'message' => 'Proteingehalt >= '
-                            .$this->_preConstants['weight_coeff'] * $user['body_weight']
-                                * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio']
-                                * $this->_preConstants['keto_nutritional_ratio']['nof_protein']
-                                * $this->_preConstants['calories_grams_rate']['nof_protein'].' g ist erwünscht.'
-                        ]
-                    ],
-                    3 => [
-                        'attr' => 'nof_fat',
-                        'type' => 'product',
-                        'operator' => '>=',
-                        'value' => $this->_preConstants['weight_coeff'] * $user['body_weight']
-                            * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio']
-                            * $this->_preConstants['keto_nutritional_ratio']['nof_fat']
-                            * $this->_preConstants['calories_grams_rate']['nof_fat'],
-                        'error' => [
-                            'message' => 'Fettgehalt >= '
-                            .$this->_preConstants['weight_coeff'] * $user['body_weight']
-                                * $user['work_intensity'] * $this->_preConstants['energy_lunch_ratio']
-                                * $this->_preConstants['keto_nutritional_ratio']['nof_fat']
-                                * $this->_preConstants['calories_grams_rate']['nof_fat'].' g ist erwünscht.'
-                        ]
-                    ]
-                ]
-            ]
-        ];
-        return $nutritionGoals[$user['nof_goal']];
-//        return $nutritionGoals['abnehmen'];
+        $oriGoal = $this->_helper->getNutritionGoalWithString($user['nof_goal']);
+        $this->_currentNutritionGoal = $oriGoal;
+        $calculateValue = function ($rules) use ($oriGoal, $user){
+            foreach ($oriGoal[$rules] as $key => $rule){
+                $value = null;
+                eval("\$value=".$rule['value'].";");
+                $this->_currentNutritionGoal[$rules][$key]['value'] = $value;
+            }
+        };
+        $calculateValue('overall');
+        $calculateValue('perDish');
+        return $this->_currentNutritionGoal;
     }
     /**
      * get work intensity integer value from the top global array
@@ -390,7 +290,7 @@ class Index extends \Magento\Framework\App\Action\Action{
      * @param bool $isOverall
      * @return string
      */
-    protected function generateErrorReport($error = [], $isOverall = true){
+    protected function formatErrorReport($error = [], $isOverall = true){
         $response = [
             'result' => 'incorrect',
             'goal' => $error['goal'],

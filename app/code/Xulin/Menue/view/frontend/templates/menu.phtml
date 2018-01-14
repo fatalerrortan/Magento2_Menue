@@ -1,4 +1,5 @@
 <h1 id="menu_week">Bestellen Sie Speisen für <b>die nächste Woche</b></h1>
+<h3 id="goal_label"><?php echo $this->getNutritionGoalLabel()[1]; ?></h3>
 <h1><center>
         <button class="gui_change_backwards" action="backwards" onclick="loadTargetGUI(this)">
             <b style="color: blue"><     </b>
@@ -20,23 +21,28 @@
         <button class="after" onclick="renderSideMenu(this)"><h4><b>Nachspeisen</b></h4></button>
     </div>
     <table id="before" border="1" style="display: none">
-        <?php echo $this->loadProductHtmlBySku(true, true); ?>
+        <?php $before = $this->loadProductHtmlBySku(true, true); echo $before;?>
     </table>
     <table id="after" border="1" style="display: none">
-        <?php echo $this->loadProductHtmlBySku(true, false); ?>
+        <?php
+            $after = $this->loadProductHtmlBySku(true, false);
+            echo $before === $after? '': $after;
+        ?>
     </table>
     <hr />
-    <center><button id="to_cart" class="action primary" onclick="menuCheck()">Weiter</button></center>
+    <center><button id="to_cart" class="action primary" onclick="weightValidate()">Weiter</button></center>
 </div>
 <script type="text/javascript">
     var order_container = {"amount": 0, "var_1":"", "var_2":"", "var_3":"", "var_4":"", "var_5":"",
         "var_6":"disable", "var_7":"disable", "var_8":"disable", "var_9":"disable", "var_10":"disable",
         "var_11":"disable", "var_12":"disable", "var_13":"disable", "var_14":"disable", "var_15":"disable"};
     var side_menu_status = {render: 'before', hide: 'after'};
-    var orders_to_post;
+    var week = {mon:[1,'Montag'],tue:[2,'Dienstag'],wed:[3,'Mittwoche'],thu:[4,'Donnerstag'],fri:[5,'Freitag']};
     var gui_status = {status: 1};
     var ordered_menu = null;
     var base_url = "<?php echo $this->getUrl(); ?>";
+    var result_handler = {};
+    var tmp_weight = null;
 // func for loading js container
 require(['jquery'], function($) {
     jQuery(document).ready(function () {
@@ -52,7 +58,7 @@ require(['jquery'], function($) {
         if(customerId === ""){
             $("button[class*='gui_change_']").hide();
         }
-        console.log(order_container);
+        // console.log(order_container);
     });
     /*
      update json "order container" when loading new product
@@ -93,16 +99,6 @@ require(['jquery'], function($) {
 
 
 });
-    /**
-     *  load new product in menu block
-     * @param sku
-     * @param name
-     * @param description
-     * @param price
-     * @param img
-     * @param position
-     * @returns {boolean}
-     */
     function load_new_var_product(sku, name, description, price, img, position) {
         require(['jquery'], function($){
         var target_block = jQuery("tr[index='"+position+"']");
@@ -238,11 +234,7 @@ require(['jquery'], function($) {
         });
     }
 
-    function menuCheck() {
-        var isLoggedIn = "<?php echo $this->_isloggedIn; ?>";
-        if(!isLoggedIn){
-            return toCart();
-        }
+    function menuCheck(weight) {
         require(['jquery', 'jquery/ui', 'Magento_Ui/js/modal/modal'], function($) {
 //            var loading = "<center><img src='<?php //echo $this->getViewFileUrl('Nextorder_Menue::img/loading.gif'); ?>//' alt='loading' style='width: 200px'/></center>";
 //            $("#diy_table").html(loading);
@@ -261,6 +253,7 @@ require(['jquery'], function($) {
                 data_to_post = data_to_post + value + ",";
             });
             postData.append("orders", data_to_post.substring(0, data_to_post.length -1));
+            postData.append("weight", weight);
             $.ajax({
                 type: "POST",
                 url: base_url+"index.php/menue/validate/index",
@@ -284,8 +277,7 @@ require(['jquery'], function($) {
                                 class: 'menu_update',
                                 click: function () {
                                     this.closeModal();
-                                    $("#side_dish_title").show();
-                                    $("#before").show();
+                                    renderOrderUpdate();
 //                                    $("#product_diy_additional").show();
 //                                    $("#product_diy_additional_dessert").show();
                                     }
@@ -304,37 +296,156 @@ require(['jquery'], function($) {
                     }else {
                         toCart();
                     }
-                    console.log(data);
+                   // console.log(data);
                 }
             });
         });
     }
 
+    function weightValidate() {
+        require(['jquery', 'jquery/ui', 'Magento_Ui/js/modal/modal'], function($) {
+            var result = null;
+            var isLoggedIn = "<?php echo $this->_isloggedIn; ?>";
+            var withGoal = "<?php echo $this->getNutritionGoalLabel()[0]; ?>";
+            if(!isLoggedIn || !withGoal){
+                return toCart();
+            }
+        var weightModalOptions = {
+            title: 'Bessermittag',
+            autoOpen: true,
+            responsive: true,
+            closed: function () {
+                console.log("Weight closed");
+                return false;
+            },
+            buttons: [
+                {
+                    text: 'Weiter',
+                    class: 'menu_gohead',
+                    click: function () {
+                        this.closeModal();
+                        tmp_weight = $("#weight").val();
+                        return menuCheck(tmp_weight);
+                    }
+                }
+            ]
+        };
+            var prevWeight = '<?php echo $this->getFormatedWeight(); ?>';
+        if((tmp_weight === null) || (tmp_weight === prevWeight)){
+            var weightToRender = prevWeight;
+        }else {
+            var weightToRender = tmp_weight;
+        }
+            var weightForm = "<h3>Bitte bestellen Sie Ihr Körpergewicht(kg) hier</h3>" +
+            "<form id='popup_form'>" +
+            "<label for='weight'>Körpergewicht(kg)</label>" +
+            "<input id='weight' type='text' value='"+weightToRender+"'/>" +
+            "</form>";
+        $('<div />').html(weightForm).modal(weightModalOptions);
+    })};
     function generateErrorReport(error) {
-            var week = {mon:'Montag',tue:'Dienstag',wed:'Mittwoche',thu:'Donnerstag',fri:'Freitag'};
-            var report = '<h3>Ihr Ernährungsziel: '+ error.goal.toUpperCase()+'</h3><ul>';
+        result_handler = {
+            complement: [false, {mon:[],tue:[],wed:[],thu:[],fri:[]}],
+            reload: [false, {mon:[],tue:[],wed:[],thu:[],fri:[]}]
+        };
+            var report = '<h3>Ihr Ernährungsziel: '+ error.goal.toUpperCase()+'</h3>' +
+                '<b style="color: #0A246A">Tipps:</b> Anklicken <b>Bestellung Updaten unten,</b><ul>' +
+                '<li>werden die Speisen nach den nicht erfüllten Bedingungen re-geladen.</li>' +
+                '<li>Nicht ausreichende Nährstoffe können Sie durch Vor- und Nachspeise ergänzen.</li></ul><ul>';
             if(error.type === 'overall'){
                 for(var key in error.report){
                     report = report + '<li style="color: #0A246A">'+
-                        error.report[key].attr+' '+error.report[key].operator+' <b style="color: green">'+error.report[key].required
-                        +'</b> ist erwünscht. (Ihr '+ error.report[key].attr +': <b style="color: red">'+ error.report[key].error_value +'</b>)</li>';
+                        error.report[key].label+' '+error.report[key].operator+' <b style="color: green">'+error.report[key].required
+                        +' '+error.report[key].unit+' </b>ist erwünscht. (Ihr '+ error.report[key].label +': <b style="color: red">'+ error.report[key].error_value +' '+error.report[key].unit+'</b>)</li>';
+                    prepareErrorHandler(error.report[key]);
                 }
             }else {
-                // for(var day in error.report){
-                //    report = report + '<li><h5>'+week[day]+'</h5><ul>';
-                //     for(var key in error.report[day]){
-                //         report = report + '<li style="color: #0A246A">'+ error.report[day][key] +'</li>'
-                //     }
-                //     report = report + '</ul></li>';
-                // }
+                 for(var day in error.report){
+                    report = report + '<li><h5>'+week[day][1]+'</h5><ul>';
+                     for(var key in error.report[day]){ // error report of each day
+                         if(error.report[day][key].error_value === null){continue;}
+                         report = report + '<li style="color: #0A246A">'+
+                             error.report[day][key].label+' '+error.report[day][key].operator+' <b style="color: green">'+error.report[day][key].required
+                             +' '+error.report[day][key].unit+'</b> ist erwünscht. (Ihre aktuelle Bestellung enthält '+ error.report[day][key].label +': <b style="color: red">'+ error.report[day][key].error_value +' '+error.report[day][key].unit+'</b>)</li>';
+                         prepareErrorHandler(error.report[day][key], day);
+                     }
+                     report = report + '</ul></li>';
+                 }
             }
             report = report + '</ul>';
-           return report;
+        console.log(result_handler);
+        return report;
     }
 
+    function prepareErrorHandler(error, day) {
+        switch (error.handler) {
+            case 'complement':
+                result_handler.complement[0] = true;
+                result_handler.complement[1][day].push({
+                    attr: error.attr,
+                    label: error.label,
+                    operator: error.operator,
+                    required: error.required,
+                    value: error.error_value,
+                    unit: error.unit
+                });
+                break;
+            case 'reload':
+                result_handler.reload[0] = true;
+                result_handler.reload[1][day].push({
+                    attr: error.attr,
+                    label: error.label,
+                    operator: error.operator,
+                    required: error.required,
+                    value: error.error_value,
+                    unit: error.unit
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    function renderOrderUpdate() {
+        require(['jquery'], function($) {
+            if(result_handler.complement[0] === true){
+                $.each(result_handler.complement[1], function (key, value) {
+                    var index_before = week[key][0] + 5;
+                    var index_after = week[key][0] + 10;
+                    if(value.length === 0){
+                        $("#before").find("tr[index='"+index_before+"']").find("div.reload_comment").html('');
+                        $("#after").find("tr[index='"+index_after+"']").find("div.reload_comment").html('');
+                        return;
+                    }
+                    var comment = "<h5>Ergänzen Sie fehlende Ernährungsstoffe zu Ihrem Ernährungsziel für "+ week[key][1] +" hier</h5><ul>";
+                    for(var i in value){
+                        comment = comment + "<li>"+value[i].label+" "+value[i].operator+" "+value[i].required+" "+value[i].unit+" ist erwünscht.<span style='color: #710909'>(Letzte Prüfung: "+value[i].value+" "+value[i].unit+" bestellt)</span></li>";
+                    }
+                    comment = comment + "</ul>";
+                    $("#before").find("tr[index='"+index_before+"']").find("div.reload_comment").html(comment);
+                    $("#after").find("tr[index='"+index_after+"']").find("div.reload_comment").html(comment);
+                });
+                $("#side_dish_title").show();
+                $("#before").show();
+            }
+            if(result_handler.reload[0] === true){
+                $.each(result_handler.reload[1], function (key, value) {
+                    var index = week[key][0];
+                    if(value.length === 0){ $("#diy_table").find("tr[index='"+index+"']").find("div.reload_comment").html('');return;}
+                   var comment = "<h5>Die Produkte sind wieder geladen nach den den folgenden Bedingungen</h5><ul>";
+                   for(var i in value){
+                       comment = comment + "<li>"+value[i].label+" "+value[i].operator+" "+value[i].required+" "+value[i].unit+"</li>";
+                   }
+                    comment = comment + "</ul>";
+                   $("#diy_table").find("tr[index='"+index+"']").find("div.reload_comment").html(comment);
+                });
+                return true
+            }
+            return console.log('Error Handler: NONE');
+        });
+    }
     function toCart() {
         require(['jquery'], function($) {
-
             var data_to_post = "";
             var isSidemenuDisplay = $("#side_dish_title").css('display');
             var index = 0;
