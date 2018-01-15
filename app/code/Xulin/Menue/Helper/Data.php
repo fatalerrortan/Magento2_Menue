@@ -209,21 +209,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper{
                         'attr' => 'nof_carbs',
                         'type' => 'product',
                         'operator' => '<=',
-                        'value' => 5,
+                        'value' => 20,
                         'unit' => 'g',
                         'error_handle' => 'reload'
                     ],
                     1 => [
                         'attr' => 'nof_protein',
                         'type' => 'product',
-                        'operator' => '>=',
-                        'value' => "\$this->_preConstants['weight_coeff'] * \$user['body_weight']
-                            * \$user['work_intensity'] * \$this->_preConstants['energy_lunch_ratio']
-                            * \$this->_preConstants['keto_nutritional_ratio']['nof_protein']
-                            * \$this->_preConstants['calories_grams_rate']['nof_protein']",
-//                        'value' => 10,
+                        'operator' => '<=', // original: >=
+//                        'value' => "\$this->_preConstants['weight_coeff'] * \$user['body_weight']
+//                            * \$user['work_intensity'] * \$this->_preConstants['energy_lunch_ratio']
+//                            * \$this->_preConstants['keto_nutritional_ratio']['nof_protein']
+//                            * \$this->_preConstants['calories_grams_rate']['nof_protein']",
+                        'value' => 20,
                         'unit' => 'g',
-                        'error_handle' => 'complement'
+                        'error_handle' => 'reload' // original: complement
                     ],
                     2 => [
                         'attr' => 'nof_fat',

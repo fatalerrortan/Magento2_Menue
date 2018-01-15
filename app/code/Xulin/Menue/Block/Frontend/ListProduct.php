@@ -14,6 +14,7 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
     protected $_modelMenudataFactory;
     public $_helper;
     public $_in_stock;
+    protected $_allowedSkus;
     /**
      * ListProduct constructor.
      * @param \Magento\Catalog\Block\Product\Context $context
@@ -83,7 +84,7 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
         return $this->_currentUserStatus = $currentUserStatus;
     }
     /**
-     * @return $this
+     * @return array
      */
     public function getCustomCollection(){
         $action = $this->_currentUserStatus;
@@ -101,6 +102,7 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
                 $optionSkus = $action["option_skus"];
                 $this->_in_stock = $action["remote_skus"]['in_stock'];
                 $arrayToFilter = array_intersect($remoteSkus, $optionSkus);
+                $this->_allowedSkus = implode(',', $arrayToFilter);
                 $productCollection = $this->_customProductCollection->create()
                     ->addAttributeToSelect('*')
                     ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
@@ -114,12 +116,14 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
                 if(empty($arrayToFilter)){
                     $arrayToFilter = array_intersect($remoteSkus, $optionSkus);
                 }
+                $this->_allowedSkus = implode(',', $arrayToFilter);
                 $productCollection = $this->_customProductCollection->create()
                     ->addAttributeToSelect('*')
                     ->addAttributeToFilter('sku', array('in' => $arrayToFilter));
                 break;
             case "LOGIN_WITHOUT_WP":
                 $talentSkus = $action["talent_skus"];
+                $this->_allowedSkus = implode(',', $talentSkus);
                 $productCollection = $this->_customProductCollection->create()
                     ->addAttributeToSelect('*')
                     ->addAttributeToFilter('sku', array('in' => $talentSkus));
@@ -128,13 +132,19 @@ class ListProduct extends \Magento\Catalog\Block\Product\ListProduct{
                 $productCollection = $this->loadLocalOptions();
                 break;
         }
-        return $productCollection;
+//        $this->_logger->addDebug(print_r($this->_allowedSkus, true));
+        return [
+            'collection' => $productCollection,
+            'skus' => $this->_allowedSkus
+        ];
     }
+
     /**
      * @return $this
      */
     public function loadLocalOptions(){
         $arrayToFilter = array_keys($this->_helper->getSerializedData('inc','bundleDataSource.txt')[$this->_optionIdIndex]);
+        $this->_allowedSkus = implode(',', $arrayToFilter);
         $productCollection = $this->_customProductCollection->create()
             ->addAttributeToSelect('*')
             ->addAttributeToFilter('sku', array('in' => $arrayToFilter));

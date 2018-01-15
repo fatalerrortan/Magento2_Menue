@@ -1,0 +1,14 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd" layout="1column">
+    <!--<head>-->
+    <!--<script src="requirejs/require.js"/>-->
+    <!--</head>-->
+    <body>
+        <referenceContainer name="header.container" remove="true" />
+        <referenceContainer name="footer-container" remove="true" />
+        <referenceContainer name="page.top" remove="true" />
+        <referenceContainer name="before.body.end" remove="true" />
+        <referenceContainer name="content">
+            <block class="Nextorder\Menue\Block\Frontend\ListReload" name="ListReload" template="list.phtml" cacheable="false"/>
+        </referenceContainer>
+    </body>
+</page>

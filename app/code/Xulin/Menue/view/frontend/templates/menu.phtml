@@ -256,7 +256,7 @@ require(['jquery'], function($) {
             postData.append("weight", weight);
             $.ajax({
                 type: "POST",
-                url: base_url+"index.php/menue/validate/index",
+                url: base_url+"menue/validate/index",
                 data: postData,
                 contentType: false,
                 processData: false,
@@ -438,7 +438,28 @@ require(['jquery'], function($) {
                    }
                     comment = comment + "</ul>";
                    $("#diy_table").find("tr[index='"+index+"']").find("div.reload_comment").html(comment);
+
+                    /**
+                     * Todo: ajax reload product collection for each day
+                     */
+                    var postData = new FormData();
+                    var conditions = {index: index, conditions: value};
+                    postData.append("conditions", JSON.stringify(conditions));
+                    postData.append("skus", $("#diy_table").find("tr[index='"+index+"']").find("input.allowed_skus").val());
+                    $.ajax({
+                        type: "POST",
+                        url: base_url+"menue/validate/reload",
+                        data: postData,
+                        contentType: false,
+                        processData: false,
+                        dataType: "text",
+                        success: function(data){
+                            console.log(data);
+                            $("#diy_table").find("tr[index='"+index+"']").find("div.product_list").html(data);
+                        }
+                    });
                 });
+
                 return true
             }
             return console.log('Error Handler: NONE');
@@ -463,7 +484,7 @@ require(['jquery'], function($) {
             postData.append("menu_orders", data_to_post.substring(0, data_to_post.length -1));
             $.ajax({
                 type: "POST",
-                url: base_url+"index.php/menue/index/cart",
+                url: base_url+"menue/index/cart",
                 data: postData,
                 contentType: false,
                 processData: false,

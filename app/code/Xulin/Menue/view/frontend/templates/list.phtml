@@ -17,9 +17,13 @@ use Magento\Framework\App\Action\Action;
  */
 ?>
 <?php
-$_productCollection = $block->getCustomCollection();
+$_customCollection = $block->getCustomCollection();
+$_productCollection = $_customCollection['collection'];
+$_allowedSkus = $_customCollection['skus'];
+
 $_helper = $this->helper('Magento\Catalog\Helper\Output');
 ?>
+    <input class="allowed_skus" type="hidden" value="<?php echo $_allowedSkus; ?>" />
 <?php if (!$_productCollection->count()): ?>
     <div class="message info empty"><div><?php /* @escapeNotVerified */ echo __('We can\'t find products matching the selection.') ?></div></div>
 <?php else: ?>
