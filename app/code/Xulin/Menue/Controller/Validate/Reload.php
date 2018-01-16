@@ -21,7 +21,7 @@ class Reload extends \Magento\Framework\App\Action\Action{
     public function execute(){
         $resultPage = $this->_resultPageFactory->create();
         $reloadHtml = $resultPage->getLayout()->getBlock('ListReload')->toHtml();
-        $this->_logger->addDebug(print_r($reloadHtml, true));
+//        $this->_logger->addDebug(print_r($reloadHtml, true));
         $this->getResponse()->setBody($reloadHtml);
     }
 }

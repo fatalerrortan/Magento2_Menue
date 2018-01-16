@@ -42,18 +42,22 @@ class ListReload extends \Magento\Catalog\Block\Product\ListProduct{
         $this->_menu_index = $conditions->index;
         $skusString = $this->getRequest()->getParam('skus');
         $skus = explode(',', $skusString);
+        $operatorCode = ['='=>'eq','!='=>'neq','>'=>'gt','<'=>'lt','>='=>'gteq','<='=>'lteq'];
 
         $listCollection = $this->_customCollection->create()
             ->addAttributeToSelect('*')
-            ->addAttributeToFilter('sku', array('in' => ['2-SG-1021','2-SG-1040']));
-
-//        $this->_logger->addDebug(print_r($conditions, true));
-//        $this->_logger->addDebug(print_r($skus, true));
+            ->addAttributeToFilter('sku', array('in' => $skus));
+        foreach ($conditions->conditions as $condition){
+            $listCollection->addAttributeToFilter($condition->attr, [
+                $operatorCode[$condition->operator] => $condition->required
+            ]);
+        }
+        $this->_logger->addDebug(print_r('one request stopped', true));
 
         return [
             'collection' => $listCollection,
             'skus' => $skusString
         ];
     }
-
 }
+

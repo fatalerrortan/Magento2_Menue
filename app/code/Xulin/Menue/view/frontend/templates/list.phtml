@@ -61,7 +61,7 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                     }
                     ?>
                     <?php // Product Image ?>
-                    <a href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>" class="product photo product-item-photo" tabindex="-1">
+                    <a href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>" class="product photo product-item-photo" tabindex="-1" target="_blank">
                         <?php echo $productImage->toHtml(); ?>
                     </a>
                     <div class="product details product-item-details">
@@ -70,7 +70,7 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                         ?>
                         <strong class="product name product-item-name">
                             <a class="product-item-link"
-                               href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>">
+                               href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>" target="_blank">
                                 <?php /* @escapeNotVerified */ echo $_helper->productAttribute($_product, $_product->getName(), 'name'); ?>
                             </a>
                         </strong>
@@ -93,7 +93,7 @@ $_helper = $this->helper('Magento\Catalog\Helper\Output');
                                         <?php $postParams = $block->getAddToCartPostParams($_product); ?>
 <!--                                        <form data-role="tocart-form">-->
                                             <button class="action primary choose_variant" onclick="chooseVariant(this)">
-                                                <span><?php /* @escapeNotVerified */ echo __('Auswahlen') ?></span>
+                                                <span><?php /* @escapeNotVerified */ echo __('Auswählen') ?></span>
                                                 <input type="hidden" class="sku" value="<?php echo $_product->getSku() ?>" />
                                                 <input type="hidden" class="name" value="<?php echo $_product->getName() ?>" />
                                                 <input type="hidden" class="description" value="<?php echo str_replace('"','',strip_tags($_product->getShortDescription())) ?>" />
