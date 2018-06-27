@@ -5,7 +5,7 @@ Development for Magento2 Weekend Menu
 
 ![alt text](http://www.xulin-tan.com/demo/magento2/interface1.png)
 
-<h3>Every meal can be changed within a price class e.g. 10-15 $</h3>
+<h3>Every meal can be changed within a price class e.g. 10-15 EURO</h3>
 
 ![alt text](http://www.xulin-tan.com/demo/magento2/interface2.png)
 
