@@ -263,6 +263,7 @@ require(['jquery'], function($) {
                 dataType: "text",
                 success: function(data){
                     data = $.parseJSON(data);
+                    console.log(data);
                     if(data.result !== 'correct'){
                         var options = {
                             title: 'Bessermittag',
@@ -278,8 +279,6 @@ require(['jquery'], function($) {
                                 click: function () {
                                     this.closeModal();
                                     renderOrderUpdate();
-//                                    $("#product_diy_additional").show();
-//                                    $("#product_diy_additional_dessert").show();
                                     }
                                 },
                                 {
@@ -352,7 +351,7 @@ require(['jquery'], function($) {
                 '<b style="color: #0A246A">Tipps:</b> Anklicken <b>Bestellung Updaten unten,</b><ul>' +
                 '<li>werden die Speisen nach den nicht erfüllten Bedingungen re-geladen.</li>' +
                 '<li>Nicht ausreichende Nährstoffe können Sie durch Vor- und Nachspeise ergänzen.</li></ul><ul>';
-            if(error.type === 'overall'){
+            if(error.type === 'userrule'){
                 for(var key in error.report){
                     report = report + '<li style="color: #0A246A">'+
                         error.report[key].label+' '+error.report[key].operator+' <b style="color: green">'+error.report[key].required
@@ -462,7 +461,7 @@ require(['jquery'], function($) {
 
                 return true
             }
-            return console.log('Error Handler: NONE');
+            // return console.log('Error Handler: NONE');
         });
     }
     function toCart() {

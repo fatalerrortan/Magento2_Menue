@@ -1,0 +1,41 @@
+<script type="text/javascript">
+    function menuCheck() {
+        require(['jquery', 'jquery/ui', 'Magento_Ui/js/modal/modal'], function($) {
+            var orders = getMenuItems(); // User Orders
+            var postData = new FormData();
+            postData.append("orders", orders);
+            $.ajax({
+                type: "POST",
+                url: base_url+"menue/validate/index", //Algorithm Controller URL
+                data: postData, // posted SKUs:  "sku1, sku2, sku3"
+                contentType: false,
+                processData: false,
+                dataType: "text",
+                success: function(data){ // fetch Algorithm Result
+                    data = $.parseJSON(data);
+                    if(data.result !== 'correct'){
+                        /**
+                         *  Call Deviation Handler
+                         */
+                    }else {
+                        toCart();
+                    }
+                }
+            });
+        });
+    }
+
+
+    function weightValidate() {
+    //.......................................
+        click: function () {
+            this.closeModal();
+            tmp_weight = $("#weight").val();
+            return menuCheck(tmp_weight);
+        }
+    //.......................................
+    }
+
+
+
+</script>

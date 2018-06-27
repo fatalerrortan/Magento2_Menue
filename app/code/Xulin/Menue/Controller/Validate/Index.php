@@ -26,8 +26,8 @@ class Index extends \Magento\Framework\App\Action\Action{
             ['sit' => 1.4, 'stand' => 1.6, 'walk' => 1.8, 'hard' => 2]
     );
     public $_error = array();
-    protected $_isOverallErrorExists = false;
-    protected $_isPerDishErrorExists = false;
+    protected $_isUserruleErrorExists = false;
+    protected $_isSingleruleErrorExists = false;
 
     public function __construct(Context $context,
                                 \Magento\Customer\Model\Session $customerSession,
@@ -43,12 +43,9 @@ class Index extends \Magento\Framework\App\Action\Action{
 
     public function execute(){
         // construct Argument 1: menu orders
-//        $test = '2-SG-1040,2-SG-1021,2-SG-1027,2-SG-234,2-SG-1037,disable,disable,disable,disable,disable,disable,disable,disable,disable,disable';
-//        $this->_logger->addDebug(print_r($this->getRequest()->getParam('orders'), true));
         $orders = $this->getModifiedOrders($this->getRequest()->getParam('orders'));
         // construct Argument 2: user info
-        $weight = $this->getRequest()->getParam('weight');
-        $user = $this->getCustomerInfo($weight);
+        $user = $this->getCustomerInfo($this->getRequest()->getParam('weight'));
         // construct argument 3: nutrition goal definition
         $goal = $this->getNutritionGoal($user);
         $result = $this->nutritionAlgorithm($orders, $user, $goal);
@@ -63,25 +60,23 @@ class Index extends \Magento\Framework\App\Action\Action{
      */
     protected function nutritionAlgorithm($orders, $user, $goal){
         /**
-         * Overall map worker
+         * user rule map worker
          * @param $rule
          * @return mixed
          */
-        $overallWorker = function ($rule) use ($orders, $user){
+        $userruleWorker = function ($rule) use ($user){
+                /**
             $attrType = $rule['type'];
-            if($attrType === 'customer'){
+           if($attrType === 'customer'){
+*/
                 $leftValue = $user[$rule['attr']];
                 $rightValue = round($rule['value'], 2);
                 $operator = $rule['operator'];
-//                $this->_logger->addDebug(print_r(
-//                    'Compare: '.$rule['attr'].
-//                    ' Left: '.$leftValue. " Operator: ".$operator ." Right: ".$rightValue
-//                    , true));
                 $result = $this->getCompareResult($operator, $leftValue, $rightValue);
                 if(!$result){
-                    $this->_isOverallErrorExists = true;
+                    $this->_isUserruleErrorExists = true;
                     $error = [
-                        'attr' => $rule['attr'], false,
+                        'attr' => $rule['attr'],
                         'label' => $this->_helper->getCustomerAttrLabel($rule['attr'], false),
                         'error_value' => $leftValue,
                         'unit' => $rule['unit'],
@@ -91,20 +86,22 @@ class Index extends \Magento\Framework\App\Action\Action{
                     ];
                     return $error;
                 }
-            }else{
                 /**
-                 * todo: if the rule here is not related to a customer attribute
-                 * limited amount of a specific food (optional)
-                 */
+           }else{
+
+                todo: if the rule here is not related to a customer attribute
+               limited amount of a specific food (optional)
+
             }
+         */
         };
-        $product = $this->_productFactory->create();
         /**
-         * PerDish map worker
+         * single rule map worker
          * @param $productsPerday
          * @return array
          */
-        $perDishWorker = function ($productsPerday) use ($user, $goal, $product){
+        $product = $this->_productFactory->create();
+        $singleruleWorker = function ($productsPerday) use ($goal, $product){
             // load ordered 3 products each day
             $products = array_map(function($sku) use ($product){
                 return  $product->loadByAttribute('sku', $sku);
@@ -113,13 +110,9 @@ class Index extends \Magento\Framework\App\Action\Action{
                 $leftValue = $this->getSumLeftValue($rule['attr'], $products);
                 $rightValue = round($rule['value'], 2);
                 $operator = $rule['operator'];
-//                $this->_logger->addDebug(print_r(
-//                    'Compare: '.$rule['attr'].
-//                    ' Left: '.$leftValue. " Operator: ".$operator ." Right: ".$rightValue
-//                    , true));
-                $result = $this->getCompareResult($operator, $leftValue, $rightValue);
+                $result = $this->getCompareResult($operator, $leftValue , $rightValue);
                 if(!$result){
-                    $this->_isPerDishErrorExists = true;
+                    $this->_isSingleruleErrorExists = true;
                     $error = [
                         'attr' => $rule['attr'],
                         'label' => $this->_helper->getProductAttrLabel($rule['attr']),
@@ -131,31 +124,28 @@ class Index extends \Magento\Framework\App\Action\Action{
                     ];
                     return $error;
                 }
-            }, $goal['perDish']);
-//            $this->_logger->addDebug(print_r('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', true));
+            }, $goal['singlerule']);
             return array_filter($rulesPerDayMap);
         };
         /**
          * main logic
          */
-        if(!empty($goal['overall'])){
-            $overallMap = array_map($overallWorker, $goal['overall']);
-            if($this->_isOverallErrorExists){
+        if(!empty($goal['userrule'])){
+            $userruleMap = array_map($userruleWorker, $goal['userrule']);
+            if($this->_isUserruleErrorExists){
                 $error = [
                     'goal' => $user['nof_goal'],
-                    'messages' => $overallMap
+                    'messages' => $userruleMap
                 ];
-//                $this->_logger->addDebug(print_r($error, true));
                 return $this->formatErrorReport($error);
             }
         }
-        $perDishMap = array_map($perDishWorker, $orders);
-        if($this->_isPerDishErrorExists){
+        $singleruleMap = array_map($singleruleWorker, $orders);
+        if($this->_isSingleruleErrorExists){
             $error = [
                 'goal' => $user['nof_goal'],
-                'messages' => $perDishMap
+                'messages' => $singleruleMap
             ];
-//            $this->_logger->addDebug(print_r($error, true));
             return $this->formatErrorReport($error, false);
         }else{
             $response = [
@@ -163,11 +153,6 @@ class Index extends \Magento\Framework\App\Action\Action{
             ];
             return json_encode($response);
         }
-//        $response_tmp = [
-//            'result' => 'incorrect',
-//            'report' => 'Ihre Auswähle passen nicht Ihrem Ernährungsziel! Bitte täglich Einmal Salat'
-//        ];
-//        return json_encode($response_tmp);
     }
     /**
      * get modified orders structure for the first argument of the nutrition algorithm
@@ -234,6 +219,7 @@ class Index extends \Magento\Framework\App\Action\Action{
         if($newWeight === $prevWeight){
             $weight = $prevWeight;
         }else{
+            $this->_logger->addDebug(print_r($currentWeight, true));
             $weight = $newWeight;
             $customer->setData('body_weight', $currentWeight)->save();
         }
@@ -262,8 +248,8 @@ class Index extends \Magento\Framework\App\Action\Action{
                 $this->_currentNutritionGoal[$rules][$key]['value'] = $value;
             }
         };
-        $calculateValue('overall');
-        $calculateValue('perDish');
+        $calculateValue('userrule');
+        $calculateValue('singlerule');
         return $this->_currentNutritionGoal;
     }
     /**
@@ -287,14 +273,14 @@ class Index extends \Magento\Framework\App\Action\Action{
     /**
      * generate algorithm json report to the front-end
      * @param array $error
-     * @param bool $isOverall
+     * @param bool $isUserrule
      * @return string
      */
-    protected function formatErrorReport($error = [], $isOverall = true){
+    protected function formatErrorReport($error = [], $isUserrule = true){
         $response = [
             'result' => 'incorrect',
             'goal' => $error['goal'],
-            'type' => $isOverall? 'overall' : 'perdish',
+            'type' => $isUserrule? 'userrule' : 'singlerule',
             'report' => array_filter($error['messages'])
         ];
         return json_encode($response);
